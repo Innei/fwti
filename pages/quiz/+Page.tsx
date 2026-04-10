@@ -5,9 +5,8 @@ import {
   setAnswers,
   setRetreatCount,
 } from '../../src/App'
-import { questionIds } from '../../src/data/questions'
 import { metaQuestionId, applyAnswerSelection } from '../../src/logic/answers'
-import { encodeAnswers } from '../../src/logic/codec'
+import { encodeAnswersV2 } from '../../src/logic/codec'
 import { getRelationshipStatus } from '../../src/logic/scoring'
 import { buildQuestionPath, isPathComplete } from '../../src/logic/flow'
 
@@ -60,7 +59,9 @@ export default function Page() {
   }
 
   function submitQuiz() {
-    const encoded = encodeAnswers(answers(), questionIds)
+    const s = status()
+    if (s === null) return // META 未答，按钮也 disabled，双保险
+    const encoded = encodeAnswersV2(answers(), s)
     void navigate(`/result/${encoded}`)
   }
 

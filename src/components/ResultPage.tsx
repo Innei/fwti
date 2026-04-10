@@ -33,7 +33,12 @@ function ResultCodeLine(props: { text: string }) {
   );
 }
 
-export function ResultPage(props: { result: Result; onRestart: () => void }) {
+export function ResultPage(props: {
+  result: Result;
+  /** 此结果是否走 v0.3 legacy scoring（旧分享链接）。渲染一条提示条并引导重测新版。 */
+  isLegacy?: boolean;
+  onRestart: () => void;
+}) {
   const [shareOpen, setShareOpen] = createSignal(false);
   const r = () => props.result;
   const p = () => r().personality;
@@ -58,6 +63,25 @@ export function ResultPage(props: { result: Result; onRestart: () => void }) {
         onRestart={props.onRestart}
         onShareImage={() => setShareOpen(true)}
       />
+
+      <Show when={props.isLegacy}>
+        <div class="legacy-banner" role="status">
+          <div class="legacy-banner-inner">
+            <span class="legacy-banner-badge">旧版测试结果 · v0.3</span>
+            <span class="legacy-banner-text">
+              此链接来自 v0.3 题库，按当时规则解读。v0.4 已引入分支题库与归一化评分，
+              结果可能不同。
+            </span>
+            <button
+              type="button"
+              class="legacy-banner-cta"
+              onClick={props.onRestart}
+            >
+              点此重测新版 →
+            </button>
+          </div>
+        </div>
+      </Show>
 
       <div class="result-container">
         {/* Hero */}
