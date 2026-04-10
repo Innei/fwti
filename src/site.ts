@@ -1,14 +1,11 @@
-/**
- * 生产环境站点 origin（无末尾斜杠），用于 canonical 与分享元数据。
- * 在 `.env` 或部署环境中设置 `VITE_SITE_URL`，例如 `https://innei.github.io/fwti`
- */
+/** 生产站点 origin（无末尾斜杠），用于 canonical、Open Graph、JSON-LD */
+const SITE_ORIGIN = 'https://fwti.innei.dev'
+
 export function getSiteOrigin(): string {
-  const raw = import.meta.env.VITE_SITE_URL as string | undefined
-  if (!raw) return ''
-  return raw.replace(/\/$/, '')
+  return SITE_ORIGIN
 }
 
-/** 可选：完整 OG 图绝对 URL（1200×630 左右 raster 最佳） */
+/** 可选：完整 OG 图绝对 URL（未设置 `VITE_OG_IMAGE` 时不输出 og:image） */
 export function getOgImageUrl(): string {
   return (import.meta.env.VITE_OG_IMAGE as string | undefined) ?? ''
 }
