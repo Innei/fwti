@@ -5,23 +5,23 @@ import {
   Show,
   For,
   type JSX,
-} from 'solid-js';
-import { questions } from './data/questions';
+} from 'solid-js'
+import { questions } from './data/questions'
 import {
   personalities,
   hiddenTitle,
   type Personality,
-} from './data/personalities';
-import { type Result } from './logic/scoring';
-import { getFamilyTheme, FAMILY_THEMES, getFamily } from './logic/family';
-import Portrait from './components/Portrait';
-import './global.css';
+} from './data/personalities'
+import { type Result } from './logic/scoring'
+import { getFamilyTheme, FAMILY_THEMES, getFamily } from './logic/family'
+import Portrait from './components/Portrait'
+import './global.css'
 
-const GITHUB_REPO_URL = 'https://github.com/Innei/fwti';
+const GITHUB_REPO_URL = 'https://github.com/Innei/fwti'
 
-export const totalQ = questions.length;
-export const [answers, setAnswers] = createSignal<Record<number, number>>({});
-const [previewDetail, setPreviewDetail] = createSignal<Personality | null>(null);
+export const totalQ = questions.length
+export const [answers, setAnswers] = createSignal<Record<number, number>>({})
+const [previewDetail, setPreviewDetail] = createSignal<Personality | null>(null)
 
 export function Layout(props: { children?: JSX.Element }) {
   return (
@@ -29,7 +29,7 @@ export function Layout(props: { children?: JSX.Element }) {
       <div class="app">{props.children}</div>
       <PreviewModal />
     </>
-  );
+  )
 }
 
 /* ===== HOME PAGE ===== */
@@ -43,13 +43,16 @@ export function HomePage(props: { onStart: () => void }) {
           <div class="eyebrow eyebrow-on-green">Fèiwù Type Indicator</div>
           <h1 class="home-title">恋爱废物人格测试</h1>
           <p class="home-lede">
-            三十一道灵魂拷问，四维交叉分析，<br />
+            三十一道灵魂拷问，四维交叉分析，
+            <br />
             为君精准定位此生爱情之废料品类。
           </p>
           <div class="home-actions">
             <button class="btn btn-white" onClick={props.onStart}>
               <span>开始测试</span>
-              <span class="btn-arrow" aria-hidden="true">→</span>
+              <span class="btn-arrow" aria-hidden="true">
+                →
+              </span>
             </button>
             <span class="home-time">约需 5 分钟</span>
           </div>
@@ -72,7 +75,7 @@ export function HomePage(props: { onStart: () => void }) {
         <div class="preview-grid">
           <For each={Object.values(personalities)}>
             {(p) => {
-              const theme = getFamilyTheme(p.code);
+              const theme = getFamilyTheme(p.code)
               return (
                 <button
                   type="button"
@@ -96,7 +99,7 @@ export function HomePage(props: { onStart: () => void }) {
                   <div class="preview-tile-name">{p.name}</div>
                   <div class="preview-tile-tagline">「{p.tagline}」</div>
                 </button>
-              );
+              )
             }}
           </For>
         </div>
@@ -114,34 +117,35 @@ export function HomePage(props: { onStart: () => void }) {
 
       <footer class="home-footer">
         <p class="home-disclaimer">
-          本测试仅供娱乐，未经临床验证，<br class="mobile-only" />
+          本测试仅供娱乐，未经临床验证，
+          <br class="mobile-only" />
           请勿用于相亲、挽回、分手或发律师函。
         </p>
       </footer>
     </div>
-  );
+  )
 }
 
 function PreviewModal() {
   createEffect(() => {
-    const p = previewDetail();
+    const p = previewDetail()
     if (p) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden'
       const onKey = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') setPreviewDetail(null);
-      };
-      window.addEventListener('keydown', onKey);
+        if (e.key === 'Escape') setPreviewDetail(null)
+      }
+      window.addEventListener('keydown', onKey)
       onCleanup(() => {
-        document.body.style.overflow = '';
-        window.removeEventListener('keydown', onKey);
-      });
+        document.body.style.overflow = ''
+        window.removeEventListener('keydown', onKey)
+      })
     }
-  });
+  })
 
   return (
     <Show when={previewDetail()} keyed>
       {(person) => {
-        const modalTheme = getFamilyTheme(person.code);
+        const modalTheme = getFamilyTheme(person.code)
         return (
           <div
             class="preview-modal-backdrop"
@@ -206,18 +210,14 @@ function PreviewModal() {
               <div class="preview-modal-section">
                 <div class="preview-modal-section-title">常见病状</div>
                 <ul class="preview-modal-traits">
-                  <For each={person.traits}>
-                    {(t) => <li>{t}</li>}
-                  </For>
+                  <For each={person.traits}>{(t) => <li>{t}</li>}</For>
                 </ul>
               </div>
 
               <div class="preview-modal-section">
                 <div class="preview-modal-section-title">口头禅</div>
                 <ul class="preview-modal-phrases">
-                  <For each={person.catchphrases}>
-                    {(c) => <li>{c}</li>}
-                  </For>
+                  <For each={person.catchphrases}>{(c) => <li>{c}</li>}</For>
                 </ul>
               </div>
 
@@ -247,10 +247,10 @@ function PreviewModal() {
               </div>
             </div>
           </div>
-        );
+        )
       }}
     </Show>
-  );
+  )
 }
 
 function Tip(props: { title: string; desc: string }) {
@@ -259,19 +259,44 @@ function Tip(props: { title: string; desc: string }) {
       <div class="tip-title">{props.title}</div>
       <div class="tip-desc">{props.desc}</div>
     </div>
-  );
+  )
+}
+
+/** Uppercase English line with each character in a fixed-width cell (visual grid). */
+function ResultEngLine(props: { text: string }) {
+  return (
+    <p class="result-eng" aria-label={props.text}>
+      <span class="result-eng-chars" aria-hidden="true">
+        <For each={[...props.text]}>
+          {(ch) => <span class="result-eng-char">{ch}</span>}
+        </For>
+      </span>
+    </p>
+  )
+}
+
+function ResultCodeLine(props: { text: string }) {
+  return (
+    <div class="result-code" aria-label={props.text}>
+      <span class="result-code-chars" aria-hidden="true">
+        <For each={[...props.text]}>
+          {(ch) => <span class="result-code-char">{ch}</span>}
+        </For>
+      </span>
+    </div>
+  )
 }
 
 /* ===== QUIZ PAGE ===== */
 export function QuizPage(props: {
-  totalQ: number;
-  progress: number;
-  answers: Record<number, number>;
-  onSelect: (qId: number, optionIdx: number) => void;
-  onSubmit: () => void;
-  canSubmit: boolean;
+  totalQ: number
+  progress: number
+  answers: Record<number, number>
+  onSelect: (qId: number, optionIdx: number) => void
+  onSubmit: () => void
+  canSubmit: boolean
 }) {
-  const pct = () => Math.round((props.progress / props.totalQ) * 100);
+  const pct = () => Math.round((props.progress / props.totalQ) * 100)
 
   return (
     <div class="page quiz-page">
@@ -287,45 +312,51 @@ export function QuizPage(props: {
       <div class="quiz-list">
         <For each={questions}>
           {(q, idx) => (
-              <article id={`q-${q.id}`} class="quiz-item">
-                <div class="quiz-item-head">
-                  <span class="quiz-item-num">Q{String(q.id).padStart(2, '0')}</span>
-                  <Show when={q.tag}>
-                    <span class="quiz-item-tag">{q.tag}</span>
-                  </Show>
-                </div>
-                <p class="quiz-item-text">{q.text}</p>
+            <article id={`q-${q.id}`} class="quiz-item">
+              <div class="quiz-item-head">
+                <span class="quiz-item-num">
+                  Q{String(q.id).padStart(2, '0')}
+                </span>
+                <Show when={q.tag}>
+                  <span class="quiz-item-tag">{q.tag}</span>
+                </Show>
+              </div>
+              <p class="quiz-item-text">{q.text}</p>
 
-                <div class="quiz-options" role="group" aria-label="选项">
-                  <For each={q.options}>
-                    {(opt, oi) => {
-                      const badgeClass = () => {
-                        const L = opt.label;
-                        if (L === 'A') return 'quiz-opt-badge quiz-opt-badge-a';
-                        if (L === 'B') return 'quiz-opt-badge quiz-opt-badge-b';
-                        return 'quiz-opt-badge quiz-opt-badge-c';
-                      };
-                      return (
-                        <button
-                          type="button"
-                          class="quiz-opt"
-                          classList={{ 'is-selected': props.answers[q.id] === oi() }}
-                          aria-pressed={props.answers[q.id] === oi()}
-                          aria-label={`选项 ${opt.label}`}
-                          onClick={() => props.onSelect(q.id, oi())}
-                        >
-                          <span class={badgeClass()}>{opt.label}</span>
-                          <span class="quiz-opt-text">{opt.text}</span>
-                        </button>
-                      );
-                    }}
-                  </For>
-                </div>
+              <div class="quiz-options" role="group" aria-label="选项">
+                <For each={q.options}>
+                  {(opt, oi) => {
+                    const badgeClass = () => {
+                      const L = opt.label
+                      if (L === 'A') return 'quiz-opt-badge quiz-opt-badge-a'
+                      if (L === 'B') return 'quiz-opt-badge quiz-opt-badge-b'
+                      return 'quiz-opt-badge quiz-opt-badge-c'
+                    }
+                    return (
+                      <button
+                        type="button"
+                        class="quiz-opt"
+                        classList={{
+                          'is-selected': props.answers[q.id] === oi(),
+                        }}
+                        aria-pressed={props.answers[q.id] === oi()}
+                        aria-label={`选项 ${opt.label}`}
+                        onClick={() => props.onSelect(q.id, oi())}
+                      >
+                        <span class={badgeClass()}>{opt.label}</span>
+                        <span class="quiz-opt-text">{opt.text}</span>
+                      </button>
+                    )
+                  }}
+                </For>
+              </div>
 
-                <div class="quiz-item-meter">
-                  <span>{idx() + 1} / {props.totalQ}</span>
-                </div>
-              </article>
+              <div class="quiz-item-meter">
+                <span>
+                  {idx() + 1} / {props.totalQ}
+                </span>
+              </div>
+            </article>
           )}
         </For>
       </div>
@@ -346,29 +377,38 @@ export function QuizPage(props: {
             onClick={props.onSubmit}
             disabled={!props.canSubmit}
           >
-            <span>{props.canSubmit ? '查看结果' : `还差 ${props.totalQ - props.progress} 题`}</span>
+            <span>
+              {props.canSubmit
+                ? '查看结果'
+                : `还差 ${props.totalQ - props.progress} 题`}
+            </span>
             <Show when={props.canSubmit}>
-              <span class="btn-arrow" aria-hidden="true">→</span>
+              <span class="btn-arrow" aria-hidden="true">
+                →
+              </span>
             </Show>
           </button>
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 /* ===== RESULT PAGE ===== */
 export function ResultPage(props: { result: Result; onRestart: () => void }) {
-  const r = () => props.result;
-  const p = () => r().personality;
-  const family = () => getFamily(p().code);
-  const theme = () => getFamilyTheme(p().code);
+  const r = () => props.result
+  const p = () => r().personality
+  const family = () => getFamily(p().code)
+  const theme = () => getFamilyTheme(p().code)
 
   return (
     <div
       class="page result-page"
       data-family={family()}
-      style={{ '--fwti-accent': theme().color, '--fwti-accent-tint': theme().tint }}
+      style={{
+        '--fwti-accent': theme().color,
+        '--fwti-accent-tint': theme().tint,
+      }}
     >
       <ResultNav onRestart={props.onRestart} />
 
@@ -376,21 +416,21 @@ export function ResultPage(props: { result: Result; onRestart: () => void }) {
         {/* Hero */}
         <section class="result-hero">
           <div class="hero-eyebrow">测试完成 · 你的废物类型是</div>
-          <Portrait
-            code={p().code}
-            size={320}
-            class="result-hero-portrait"
-          />
-          <div class="result-code">{p().code}</div>
-          <h1 class="result-name">{p().name}</h1>
-          <p class="result-eng">{p().engName}</p>
+          <div class="result-identity">
+            <h1 class="result-name">{p().name}</h1>
+            <ResultEngLine text={p().engName} />
+            <ResultCodeLine text={p().code} />
+          </div>
+          <Portrait code={p().code} size={320} class="result-hero-portrait" />
           <p class="result-tagline">「{p().tagline}」</p>
           <div class="waste-meter">
             <span class="waste-meter-label">废物指数</span>
             <div class="waste-meter-bar">
               <For each={Array.from({ length: 5 })}>
                 {(_, i) => (
-                  <span class={`waste-dot ${i() < p().wasteLevel ? 'filled' : ''}`} />
+                  <span
+                    class={`waste-dot ${i() < p().wasteLevel ? 'filled' : ''}`}
+                  />
                 )}
               </For>
             </div>
@@ -449,7 +489,9 @@ export function ResultPage(props: { result: Result; onRestart: () => void }) {
             <For each={p().traits}>
               {(t, i) => (
                 <li class="trait-item">
-                  <span class="trait-num">{String(i() + 1).padStart(2, '0')}</span>
+                  <span class="trait-num">
+                    {String(i() + 1).padStart(2, '0')}
+                  </span>
                   <span class="trait-text">{t}</span>
                 </li>
               )}
@@ -489,7 +531,9 @@ export function ResultPage(props: { result: Result; onRestart: () => void }) {
               <div class="match-card-body">
                 <div class="match-label">最佳拍档</div>
                 <div class="match-code">{p().bestMatch}</div>
-                <div class="match-name">{personalities[p().bestMatch]?.name}</div>
+                <div class="match-name">
+                  {personalities[p().bestMatch]?.name}
+                </div>
                 <div class="match-hint">天造地设，惺惺相惜</div>
               </div>
             </button>
@@ -509,7 +553,9 @@ export function ResultPage(props: { result: Result; onRestart: () => void }) {
               <div class="match-card-body">
                 <div class="match-label">最怕遇到</div>
                 <div class="match-code">{p().worstMatch}</div>
-                <div class="match-name">{personalities[p().worstMatch]?.name}</div>
+                <div class="match-name">
+                  {personalities[p().worstMatch]?.name}
+                </div>
                 <div class="match-hint">相爱相杀，避之则吉</div>
               </div>
             </button>
@@ -530,7 +576,7 @@ export function ResultPage(props: { result: Result; onRestart: () => void }) {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 function GithubNavLink() {
@@ -550,7 +596,7 @@ function GithubNavLink() {
       </svg>
       <span>GitHub</span>
     </a>
-  );
+  )
 }
 
 function TopNav(props: { meta?: string }) {
@@ -569,7 +615,7 @@ function TopNav(props: { meta?: string }) {
         </div>
       </div>
     </nav>
-  );
+  )
 }
 
 function ResultNav(props: { onRestart: () => void }) {
@@ -588,5 +634,5 @@ function ResultNav(props: { onRestart: () => void }) {
         </div>
       </div>
     </nav>
-  );
+  )
 }
