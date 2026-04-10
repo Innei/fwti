@@ -2093,16 +2093,30 @@ button.legend-chip:focus-visible {
   background: var(--fwti-bg);
   border: 1px solid var(--fwti-border);
   border-radius: 16px;
-  padding: 24px 24px 24px 12px;
+  padding: 24px;
   text-align: left;
   cursor: pointer;
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
     border-color 0.2s ease;
+}
+.match-card-top {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+.match-card-header {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
 }
 .match-card:hover {
   transform: translateY(-2px);
@@ -2125,9 +2139,10 @@ button.legend-chip:focus-visible {
 .match-card-portrait {
   flex: 0 0 auto;
   width: 120px;
+  align-self: flex-start;
 }
 .match-card-body {
-  flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
 }
 .match-label {
@@ -2136,7 +2151,7 @@ button.legend-chip:focus-visible {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--fwti-text-soft);
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
 .match-card.best .match-label {
   color: var(--fwti-accent);
@@ -2163,7 +2178,7 @@ button.legend-chip:focus-visible {
   line-height: 1.6;
 }
 .match-rationale {
-  margin: 10px 0 0;
+  margin: 0;
   font-size: 14px;
   line-height: 1.65;
   color: var(--fwti-text-dark);

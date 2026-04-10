@@ -235,18 +235,22 @@ export function ResultPage(props: {
               }
               aria-label={`查看 ${personalities[matches().best.code]?.name} 详情`}
             >
-              <Portrait
-                code={matches().best.code}
-                size={120}
-                class="match-card-portrait"
-              />
-              <div class="match-card-body">
-                <div class="match-label">最佳拍档</div>
-                <div class="match-code">{matches().best.code}</div>
-                <div class="match-name">
-                  {personalities[matches().best.code]?.name}
+              <div class="match-card-top">
+                <div class="match-card-header">
+                  <div class="match-label">最佳拍档</div>
+                  <div class="match-code">{matches().best.code}</div>
+                  <div class="match-name">
+                    {personalities[matches().best.code]?.name}
+                  </div>
+                  <div class="match-hint">天造地设，惺惺相惜</div>
                 </div>
-                <div class="match-hint">天造地设，惺惺相惜</div>
+                <Portrait
+                  code={matches().best.code}
+                  size={120}
+                  class="match-card-portrait"
+                />
+              </div>
+              <div class="match-card-body">
                 <p class="match-rationale">{matches().best.summary}</p>
                 <ul class="match-reasons">
                   <For each={matches().best.reasons.slice(0, 2)}>
@@ -263,18 +267,22 @@ export function ResultPage(props: {
               }
               aria-label={`查看 ${personalities[matches().worst.code]?.name} 详情`}
             >
-              <Portrait
-                code={matches().worst.code}
-                size={120}
-                class="match-card-portrait"
-              />
-              <div class="match-card-body">
-                <div class="match-label">最怕遇到</div>
-                <div class="match-code">{matches().worst.code}</div>
-                <div class="match-name">
-                  {personalities[matches().worst.code]?.name}
+              <div class="match-card-top">
+                <div class="match-card-header">
+                  <div class="match-label">最怕遇到</div>
+                  <div class="match-code">{matches().worst.code}</div>
+                  <div class="match-name">
+                    {personalities[matches().worst.code]?.name}
+                  </div>
+                  <div class="match-hint">相爱相杀，避之则吉</div>
                 </div>
-                <div class="match-hint">相爱相杀，避之则吉</div>
+                <Portrait
+                  code={matches().worst.code}
+                  size={120}
+                  class="match-card-portrait"
+                />
+              </div>
+              <div class="match-card-body">
                 <p class="match-rationale">{matches().worst.summary}</p>
                 <ul class="match-reasons">
                   <For each={matches().worst.reasons.slice(0, 2)}>
