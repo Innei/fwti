@@ -1254,10 +1254,12 @@ a.nav-logo:focus-visible {
   gap: 0;
 }
 .result-eng-char {
-  flex: 0 0 auto;
-  width: 0.72em;
+  /* 0.72em 在 iOS Safari 上易把大字号字母挤变形；1em = 相对 .result-eng 字号一格一字 */
+  flex: 0 0 1em;
+  width: 1em;
+  min-width: 1em;
   text-align: center;
-  box-sizing: content-box;
+  box-sizing: border-box;
 }
 .result-code {
   font-family: var(--fwti-font-title);
@@ -1275,10 +1277,11 @@ a.nav-logo:focus-visible {
   gap: 0;
 }
 .result-code-char {
-  flex: 0 0 auto;
-  width: 0.72em;
+  flex: 0 0 1em;
+  width: 1em;
+  min-width: 1em;
   text-align: center;
-  box-sizing: content-box;
+  box-sizing: border-box;
 }
 .result-tagline {
   font-size: 19px;
