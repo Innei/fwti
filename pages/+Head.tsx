@@ -1,9 +1,55 @@
-export default function HeadDefault() {
+import { usePageContext } from 'vike-solid/usePageContext'
+import { getOgImageUrl, getSiteOrigin } from '../src/site'
+
+const JSON_LD_DESCRIPTION =
+  '基于 FWTI 框架的恋爱主题趣味性格测试，含十六种类型释义。仅供娱乐，非临床或心理诊断工具。'
+
+export function Head() {
+  const pageContext = usePageContext()
+  const site = getSiteOrigin()
+  const pathname = pageContext.urlPathname ?? '/'
+  const pathForCanonical = pathname.startsWith('/') ? pathname : `/${pathname}`
+  const canonical = site ? `${site}${pathForCanonical}` : ''
+  const ogImage = getOgImageUrl()
+
+  const jsonLd =
+    site &&
+    JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'FWTI 恋爱废物人格测试',
+      description: JSON_LD_DESCRIPTION,
+      inLanguage: 'zh-CN',
+      url: `${site}/`,
+      publisher: {
+        '@type': 'Organization',
+        name: 'FWTI',
+        url: site,
+      },
+    })
+
   return (
     <>
       <meta charset="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <meta name="theme-color" content="#33a474" />
+      <meta
+        name="keywords"
+        content="FWTI,恋爱测试,性格测试,趣味测试,恋爱废物人格,娱乐测试"
+      />
+      <meta name="robots" content="index,follow" />
+      <meta name="author" content="Innei" />
+      {canonical ? <link rel="canonical" href={canonical} /> : null}
+      <meta property="og:site_name" content="FWTI" />
+      <meta property="og:type" content="website" />
+      <meta property="og:locale" content="zh_CN" />
+      {canonical ? <meta property="og:url" content={canonical} /> : null}
+      <meta name="twitter:card" content="summary_large_image" />
+      {ogImage ? <meta property="og:image" content={ogImage} /> : null}
+      {ogImage ? <meta name="twitter:image" content={ogImage} /> : null}
+      {jsonLd ? (
+        <script type="application/ld+json" innerHTML={jsonLd} />
+      ) : null}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
       <link
