@@ -790,6 +790,12 @@ a.nav-logo:focus-visible {
   color: var(--fwti-modal-body);
   margin: 0;
 }
+.preview-modal-desc p {
+  margin: 0 0 10px;
+}
+.preview-modal-desc p:last-child {
+  margin-bottom: 0;
+}
 
 .preview-modal-waste {
   display: flex;
@@ -2016,6 +2022,12 @@ button.legend-chip:focus-visible {
   line-height: 1.8;
   color: var(--fwti-text-dark);
   max-width: 620px;
+}
+.result-desc p {
+  margin: 0 0 1em;
+}
+.result-desc p:last-child {
+  margin-bottom: 0;
 }
 
 /* Traits */
