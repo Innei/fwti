@@ -2,6 +2,7 @@ import {
   createSignal,
   createEffect,
   onCleanup,
+  onMount,
   Show,
   For,
   type JSX,
@@ -22,6 +23,12 @@ import {
 } from './logic/scoring'
 import { getFamilyTheme, FAMILY_THEMES, getFamily } from './logic/family'
 import Portrait from './components/Portrait'
+import {
+  cycleThemeSetting,
+  getStoredTheme,
+  initThemeFromStorage,
+  type FwtiThemeSetting,
+} from './theme'
 import './global.css'
 
 const GITHUB_REPO_URL = 'https://github.com/Innei/fwti'
@@ -31,6 +38,9 @@ export const [answers, setAnswers] = createSignal<Record<number, number>>({})
 const [previewDetail, setPreviewDetail] = createSignal<Personality | null>(null)
 
 export function Layout(props: { children?: JSX.Element }) {
+  onMount(() => {
+    initThemeFromStorage()
+  })
   return (
     <>
       <div class="app">{props.children}</div>
@@ -307,7 +317,7 @@ export function QuizPage(props: {
   canSubmit: boolean
 }) {
   const pct = () => Math.round((props.progress / props.totalQ) * 100)
-  // 根据前置题结果，派生当前的恋爱状态；未选时为 null（使用默认题干）
+  // 根据前置题结果，派生当前的关系语境；未选时为 null（使用默认题干）
   const status = (): RelationshipStatus => getRelationshipStatus(props.answers)
 
   return (
@@ -339,6 +349,9 @@ export function QuizPage(props: {
                 </Show>
               </div>
               <p class="quiz-item-text">{resolveQuestionText(q, status())}</p>
+              <Show when={q.dimension === 'META'}>
+                <p class="quiz-item-note">若稍后更改此前置项，后续答案会自动重置。</p>
+              </Show>
 
               <div class="quiz-options" role="group" aria-label="选项">
                 <For each={q.options}>
@@ -443,10 +456,10 @@ export function ResultPage(props: { result: Result; onRestart: () => void }) {
             <Show when={p().cnSlang}>
               <p class="result-slang">{p().cnSlang}</p>
             </Show>
-            <ResultCodeLine text={p().code} />
+            <ResultCodeLine text={r().displayCode} />
             <Show when={!r().isLimbo && r().tiedDimensions.length > 0}>
               <p class="result-tied-note">
-                有 {r().tiedDimensions.length} 个维度打平（已取默认"废"方向，以 * 标记）
+                有 {r().tiedDimensions.length} 个维度打平，已按默认归属人格卡并以 * 标记该维度
               </p>
             </Show>
           </div>
@@ -712,6 +725,61 @@ export function ResultPage(props: { result: Result; onRestart: () => void }) {
   )
 }
 
+function ThemeToggle() {
+  const [setting, setSetting] = createSignal<FwtiThemeSetting>(null)
+
+  onMount(() => {
+    setSetting(getStoredTheme())
+  })
+
+  function onClick() {
+    cycleThemeSetting()
+    setSetting(getStoredTheme())
+  }
+
+  const title = () => {
+    const s = setting()
+    if (s == null) return '切换外观（当前：跟随系统）'
+    if (s === 'light') return '切换外观（当前：浅色）'
+    return '切换外观（当前：深色）'
+  }
+
+  return (
+    <button
+      type="button"
+      class="theme-toggle"
+      onClick={onClick}
+      title={title()}
+      aria-label={title()}
+    >
+      <Show when={setting() === 'light'}>
+        <svg class="theme-toggle-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            fill="currentColor"
+            d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10ZM2 13h2a1 1 0 1 0 0-2H2a1 1 0 1 0 0 2Zm18 0h2a1 1 0 1 0 0-2h-2a1 1 0 1 0 0 2ZM11 2v2a1 1 0 1 0 2 0V2a1 1 0 1 0-2 0Zm0 18v2a1 1 0 1 0 2 0v-2a1 1 0 1 0-2 0ZM6.343 4.929 4.93 6.343 6.343 7.757 7.757 6.343 6.343 4.929Zm9.9 9.9-1.414 1.414 1.414 1.414 1.414-1.414-1.414-1.414Zm1.414-9.9 1.414 1.414-1.414 1.414-1.414-1.414 1.414-1.414ZM6.343 17.657l-1.414 1.414 1.414 1.414 1.414-1.414-1.414-1.414Z"
+          />
+        </svg>
+      </Show>
+      <Show when={setting() === 'dark'}>
+        <svg class="theme-toggle-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            fill="currentColor"
+            d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.6 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1Z"
+          />
+        </svg>
+      </Show>
+      <Show when={setting() == null}>
+        <svg class="theme-toggle-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            fill="currentColor"
+            d="M9 4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h3a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3V4Zm2 1h2V4h-2v1ZM6 8v10h12V8H6Zm2 2h8v2H8v-2Zm0 4h5v2H8v-2Z"
+          />
+        </svg>
+      </Show>
+    </button>
+  )
+}
+
 function GithubNavLink() {
   return (
     <a
@@ -744,6 +812,7 @@ function TopNav(props: { meta?: string }) {
           <Show when={props.meta}>
             <div class="nav-meta">{props.meta}</div>
           </Show>
+          <ThemeToggle />
           <GithubNavLink />
         </div>
       </div>
@@ -763,6 +832,7 @@ function ResultNav(props: { onRestart: () => void }) {
           <button class="nav-restart" type="button" onClick={props.onRestart}>
             重新测试
           </button>
+          <ThemeToggle />
           <GithubNavLink />
         </div>
       </div>

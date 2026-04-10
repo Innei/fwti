@@ -1,13 +1,14 @@
 import { navigate } from 'vike/client/router'
 import { QuizPage, answers, setAnswers, totalQ } from '../../src/App'
 import { questions } from '../../src/data/questions'
+import { applyAnswerSelection } from '../../src/logic/answers'
 import { encodeAnswers } from '../../src/logic/codec'
 
 export default function Page() {
   const progress = () => Object.keys(answers()).length
 
   function selectOption(qId: number, optionIdx: number) {
-    setAnswers((prev) => ({ ...prev, [qId]: optionIdx }))
+    setAnswers((prev) => applyAnswerSelection(prev, qId, optionIdx))
     queueMicrotask(() => scrollToNextUnanswered(qId))
   }
 

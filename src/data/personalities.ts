@@ -410,7 +410,7 @@ export const hiddenTitles: Record<string, HiddenTitle> = {
   electronicVendor: {
     id: 'electronicVendor',
     name: '电子乙方',
-    description: '约会你来定、道歉你先说、消息你先发——你在这段关系里几乎承担了全部的"主动成本"。打工都没你这么卷。',
+    description: '地点让对方定、道歉你先说、消息你先发——你在这段关系里几乎承担了全部的"主动成本"。打工都没你这么卷。',
   },
   daydreamer: {
     id: 'daydreamer',

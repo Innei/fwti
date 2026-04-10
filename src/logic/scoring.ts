@@ -9,10 +9,12 @@ export interface Scores {
   hidden: number; // 撤回大师纠结值
 }
 
-export type RelationshipStatus = 'active' | 'crush' | 'solo' | null;
+export type RelationshipStatus = 'dating' | 'uncertain' | 'solo' | null;
 
 export interface Result {
   code: string;
+  /** 结果页展示码；单维平票时以 * 替代该维字母 */
+  displayCode: string;
   personality: typeof personalities[string];
   /** 至少解锁一个隐藏标签时为 true（兼容旧字段） */
   hasHiddenTitle: boolean;
@@ -149,13 +151,21 @@ export function getResult(answers: Record<number, number>): Result {
     code = 'LIMBO';
     personality = personalities.LIMBO;
   } else {
-    // 平票时（仅有 0 或 1 个维度平票），0 分走默认"废"方向：D, Z, N, Y
+    // 单维平票仍需落到一张人格卡；默认废方向采用 D / Z / N / Y。
     const g = scores.GD > 0 ? 'G' : 'D';
-    const z = scores.ZR > 0 ? 'Z' : 'R';
-    const n = scores.NL > 0 ? 'N' : 'L';
-    const y = scores.YF > 0 ? 'Y' : 'F';
+    const z = scores.ZR >= 0 ? 'Z' : 'R';
+    const n = scores.NL >= 0 ? 'N' : 'L';
+    const y = scores.YF >= 0 ? 'Y' : 'F';
     code = g + z + n + y;
     personality = personalities[code];
+  }
+
+  let displayCode = code;
+  if (!isLimbo && tied.length === 1) {
+    const chars = [...code];
+    const tieIndex = { GD: 0, ZR: 1, NL: 2, YF: 3 }[tied[0]];
+    chars[tieIndex] = '*';
+    displayCode = chars.join('');
   }
 
   const unlockedHiddenTitles = detectHiddenTitles(answers, scores);
@@ -196,6 +206,7 @@ export function getResult(answers: Record<number, number>): Result {
 
   return {
     code,
+    displayCode,
     personality,
     hasHiddenTitle,
     unlockedHiddenTitles,

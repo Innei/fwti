@@ -1,7 +1,7 @@
 export type QuestionDimension = 'GD' | 'ZR' | 'NL' | 'YF' | 'META';
 
 /** 与 RelationshipStatus 对齐；不导入以避免循环依赖。 */
-type StatusKey = 'active' | 'crush' | 'solo';
+type StatusKey = 'dating' | 'uncertain' | 'solo';
 
 /**
  * 单题在特定恋爱状态下的文本覆写。
@@ -23,12 +23,12 @@ export interface Question {
     text: string;
     score: number; // +2 = 极性A, 0 = 中立, -2 = 极性B; 对GD: G=+2, D=-2; 对ZR: Z=+2, R=-2; 对NL: N=+2, L=-2; 对YF: Y=+2, F=-2
     hidden?: number; // 隐藏纠结值
-    meta?: string;   // META 题选项携带的语义标签（有对象 / 暧昧 / 单身藏 / 纯单身）
+    meta?: string;   // META 题选项携带的语义标签（恋爱中 / 未确定关系但心里有人 / 纯单身）
   }[];
   /**
    * 基于 META 前置题（恋爱状态）的题干 / 选项替换。
-   * 默认 active（"脑子里有一个明确的 TA"）使用原文；
-   * crush / solo 可按需覆写，让题目在单身场景下不至于错位。
+   * 默认 dating（"已经在关系里"）使用原文；
+   * uncertain / solo 可按需覆写，让未确定关系或纯单身场景下不至于错位。
    */
   variants?: Partial<Record<StatusKey, QuestionVariant>>;
 }
@@ -70,8 +70,8 @@ export const questions: Question[] = [
     tag: '前置',
     text: '开始之前——你目前的恋爱状态是？',
     options: [
-      { label: 'A', text: '有对象 / 正在恋爱 / 正在暧昧，总之脑子里有一个明确的 TA', score: 0, meta: 'active' },
-      { label: 'B', text: '单身，但心里藏着某个人 / 念念不忘的历任', score: 0, meta: 'crush' },
+      { label: 'A', text: '正在恋爱 / 已经在一起', score: 0, meta: 'dating' },
+      { label: 'B', text: '还没在一起，但暧昧中 / 暗恋中 / 心里有个明确的 TA', score: 0, meta: 'uncertain' },
       { label: 'C', text: '纯单身，古生物级别的自由人', score: 0, meta: 'solo' },
     ],
   },
@@ -96,6 +96,14 @@ export const questions: Question[] = [
       { label: 'B', text: '谁有想法谁来，都行', score: 0 },
       { label: 'C', text: '你定吧，我"随便"和"都行"二选一', score: -2 },
     ],
+    variants: {
+      uncertain: {
+        text: '如果你终于和心里那个 TA 约出来了，地点谁来定？',
+      },
+      solo: {
+        text: '想象你和一个有好感的人第一次约会，地点谁来定？',
+      },
+    },
   },
   {
     id: 3,
@@ -107,7 +115,7 @@ export const questions: Question[] = [
       { label: 'C', text: 'TA 不找我，我能冷到地球毁灭', score: -2 },
     ],
     variants: {
-      crush: {
+      uncertain: {
         text: '你和心里那个 TA 关系突然变僵、两天没说话了，你会？',
       },
       solo: {
@@ -134,6 +142,14 @@ export const questions: Question[] = [
       { label: 'B', text: '放下手机做别的，偶尔瞄一眼', score: 0 },
       { label: 'C', text: '算了，TA 回不回都无所谓（其实有所谓）', score: -2 },
     ],
+    variants: {
+      uncertain: {
+        text: '你发消息给心里那个 TA，对方 2 小时没回，你的操作是？',
+      },
+      solo: {
+        text: '想象你刚对某个人有点上头，发消息后对方 2 小时没回，你的操作是？',
+      },
+    },
   },
   {
     id: 6,
@@ -154,6 +170,14 @@ export const questions: Question[] = [
       { label: 'B', text: '旁敲侧击试探一下，看看什么情况', score: 0 },
       { label: 'C', text: 'TA 冷我就冷回去，看谁先撑不住', score: -2 },
     ],
+    variants: {
+      uncertain: {
+        text: '你感觉心里那个 TA 最近有点冷淡了，你会？',
+      },
+      solo: {
+        text: '想象你刚开始和一个人接触，对方突然冷下来，你会？',
+      },
+    },
   },
   {
     id: 8,
@@ -164,6 +188,14 @@ export const questions: Question[] = [
       { label: 'B', text: '看对方反应，TA 发我就回', score: 0 },
       { label: 'C', text: '不会，万一显得我太上头呢', score: -2 },
     ],
+    variants: {
+      uncertain: {
+        text: '第一次正式约出来之后，你会主动发消息说"今天很开心"吗？',
+      },
+      solo: {
+        text: '想象你第一次和有好感的人见面结束后，你会主动发消息说"今天很开心"吗？',
+      },
+    },
   },
 
   // ===== 维度二：Z/R — 情绪表达（7 题）=====
@@ -196,6 +228,14 @@ export const questions: Question[] = [
       { label: 'B', text: '有点失望，找个机会委婉提醒', score: 0 },
       { label: 'C', text: '默默记了一笔账，不说，但永远不忘', score: -2 },
     ],
+    variants: {
+      uncertain: {
+        text: '心里那个 TA 忘了一个对你很重要的日子（生日 / 你发的重要动态 / 你第一次认真打扮给 TA 看），你会？',
+      },
+      solo: {
+        text: '想象你很在意的那个人忘了一个对你很重要的日子（生日 / 你发的重要动态 / 你第一次认真打扮给 TA 看），你会？',
+      },
+    },
   },
   {
     id: 12,
@@ -249,7 +289,7 @@ export const questions: Question[] = [
       { label: 'C', text: '有事说事，没事各忙各的', score: -2 },
     ],
     variants: {
-      crush: {
+      uncertain: {
         text: '如果有一天你和心里那个 TA 真的在一起了，你理想的聊天频率是？',
       },
       solo: {
@@ -267,7 +307,7 @@ export const questions: Question[] = [
       { label: 'C', text: '太好了，我正好有个完美的独处之夜', score: -2 },
     ],
     variants: {
-      crush: {
+      uncertain: {
         text: '假设 TA 是你对象，TA 说今晚要和朋友出去玩，你的反应是？',
       },
       solo: {
@@ -285,6 +325,9 @@ export const questions: Question[] = [
       { label: 'C', text: '给我一整个下午独处，否则我会枯萎', score: -2 },
     ],
     variants: {
+      uncertain: {
+        text: '如果你和心里那个 TA 真在一起了，你理想的周末是？',
+      },
       solo: {
         text: '想象你谈恋爱了，你理想的周末是？',
         options: [
@@ -304,6 +347,14 @@ export const questions: Question[] = [
       { label: 'B', text: '关系好的朋友会介绍', score: 0 },
       { label: 'C', text: '不太想，我的社交圈是我的，TA 的是 TA 的', score: -2 },
     ],
+    variants: {
+      uncertain: {
+        text: '如果你和心里那个 TA 真的在一起了，你怎么看"把 TA 介绍给所有朋友"这件事？',
+      },
+      solo: {
+        text: '想象你恋爱了，你怎么看"把对象介绍给所有朋友"这件事？',
+      },
+    },
   },
   {
     id: 20,
@@ -315,7 +366,7 @@ export const questions: Question[] = [
       { label: 'C', text: '终于可以一个人看剧打游戏吃泡面了！', score: -2 },
     ],
     variants: {
-      crush: {
+      uncertain: {
         text: '假设 TA 已经是你对象，TA 出差 / 离开你一个礼拜，你会？',
       },
       solo: {
@@ -343,7 +394,7 @@ export const questions: Question[] = [
       { label: 'C', text: '不会，这是我最后的领土', score: -2 },
     ],
     variants: {
-      crush: {
+      uncertain: {
         text: '假设 TA 和你在一起了，你会主动分享手机密码 / 社交账号密码吗？',
       },
       solo: {
@@ -373,7 +424,7 @@ export const questions: Question[] = [
       { label: 'C', text: '哦，知道了。（真的只是"知道了"，没有内心戏）', score: -2 },
     ],
     variants: {
-      crush: {
+      uncertain: {
         text: '你看到 TA 和某个异性朋友单独吃饭，你的内心 OS 是？',
       },
       solo: {
@@ -390,6 +441,14 @@ export const questions: Question[] = [
       { label: 'B', text: '开心但有一点点疑惑', score: 0 },
       { label: 'C', text: '收礼物嘛，开心就好，想那么多干嘛', score: -2 },
     ],
+    variants: {
+      uncertain: {
+        text: '心里那个 TA 突然对你特别好、还送了你一个礼物，你会想什么？',
+      },
+      solo: {
+        text: '想象你刚开始在意的人突然对你特别好、还送了你一个礼物，你会想什么？',
+      },
+    },
   },
   {
     id: 26,
@@ -400,6 +459,14 @@ export const questions: Question[] = [
       { label: 'B', text: '偶尔无意间看到会在意一下', score: 0 },
       { label: 'C', text: '从来没有，也没兴趣', score: -2 },
     ],
+    variants: {
+      uncertain: {
+        text: '你有没有翻过心里那个 TA 的社交动态 / 聊天记录 / 主页考古？',
+      },
+      solo: {
+        text: '想象你开始在意某个人后，你会不会翻对方的社交动态 / 主页考古？',
+      },
+    },
   },
   {
     id: 27,
@@ -425,6 +492,14 @@ export const questions: Question[] = [
       { label: 'B', text: '怎么了？有点紧张', score: 0 },
       { label: 'C', text: '嗯，你说', score: -2 },
     ],
+    variants: {
+      uncertain: {
+        text: '心里那个 TA 说"我有个事想跟你说"，你的第一反应是？',
+      },
+      solo: {
+        text: '想象一个你刚开始在意的人说"我有个事想跟你说"，你的第一反应是？',
+      },
+    },
   },
   {
     id: 29,

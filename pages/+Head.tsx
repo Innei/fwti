@@ -30,7 +30,11 @@ export function Head() {
 
   return (
     <>
+      <script
+        innerHTML={`(function(){try{var t=localStorage.getItem('fwti-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t;}catch(e){}})();`}
+      />
       <meta name="theme-color" content="#33a474" />
+      <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#09090b" />
       <meta
         name="keywords"
         content="FWTI,恋爱测试,性格测试,趣味测试,恋爱废物人格,娱乐测试"
