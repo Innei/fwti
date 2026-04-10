@@ -33,11 +33,13 @@ import './global.css'
 
 const GITHUB_REPO_URL = 'https://github.com/Innei/fwti'
 
-export const totalQ = questions.length
 /**
- * 正题题库数量（排除 META 前置题）。
- * 对外文案与进度条统一以这个数字为准——DRAFT 里承诺的是"三十一道灵魂拷问"，
- * 前置题只是语境路由，不计入题目计数。
+ * 正题题库数量（排除 META 前置题，但**包含**彩蛋题 id=31）。
+ * 对外文案与进度条统一以这个数字为准——DRAFT 里承诺的是"三十一道灵魂拷问"
+ * （= 30 道主线题 + 1 道隐藏彩蛋题 = 31），前置题只是语境路由，不计入题目计数。
+ *
+ * 注意：scoring.ts 里做"空想家"极端答题统计时，会再从这 31 题里剔除彩蛋得到 30，
+ * 那是 DRAFT 中"主线题"的定义，跟这里的 mainQ 是两个不同口径，别弄混。
  */
 export const mainQ = questions.filter((q) => q.dimension !== 'META').length
 export const [answers, setAnswers] = createSignal<Record<number, number>>({})
@@ -337,9 +339,11 @@ export function QuizPage(props: {
     runningIdx += 1
     mainIndexMap.set(q.id, runningIdx)
   }
-  const remaining = () => {
-    const mainLeft = Math.max(0, props.mainTotal - props.mainProgress)
-    return mainLeft + (props.metaAnswered ? 0 : 1)
+  const mainLeft = () => Math.max(0, props.mainTotal - props.mainProgress)
+  const submitLabel = () => {
+    if (props.canSubmit) return '查看结果'
+    if (!props.metaAnswered) return '请先完成前置题'
+    return `还差 ${mainLeft()} 题`
   }
 
   return (
@@ -439,11 +443,7 @@ export function QuizPage(props: {
             onClick={props.onSubmit}
             disabled={!props.canSubmit}
           >
-            <span>
-              {props.canSubmit
-                ? '查看结果'
-                : `还差 ${remaining()} 题`}
-            </span>
+            <span>{submitLabel()}</span>
             <Show when={props.canSubmit}>
               <span class="btn-arrow" aria-hidden="true">
                 →

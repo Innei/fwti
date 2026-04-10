@@ -1,6 +1,6 @@
 import { navigate } from 'vike/client/router'
-import { QuizPage, answers, setAnswers, totalQ, mainQ } from '../../src/App'
-import { questions } from '../../src/data/questions'
+import { QuizPage, answers, setAnswers, mainQ } from '../../src/App'
+import { questions, questionIds } from '../../src/data/questions'
 import { metaQuestionId, applyAnswerSelection } from '../../src/logic/answers'
 import { encodeAnswers } from '../../src/logic/codec'
 
@@ -39,7 +39,7 @@ export default function Page() {
   }
 
   function submitQuiz() {
-    const encoded = encodeAnswers(answers(), totalQ)
+    const encoded = encodeAnswers(answers(), questionIds)
     void navigate(`/result/${encoded}`)
   }
 

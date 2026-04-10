@@ -110,19 +110,22 @@ export function detectHiddenTitles(
     unlocked.push(hiddenTitles.momentsArchaeologist);
   }
 
-  // ④ 薛定谔的前任：Q14 + Q28 都选 A（都是维度极端选项）
-  if (answers[14] === A && answers[28] === A) {
+  // 前置题决定后面几条标签的触发上下文
+  const status = getRelationshipStatus(answers);
+
+  // ④ 薛定谔的前任：必须前置题选"crush"（单身但心里藏着某个人），再叠加临别爆发 + 脑补被抛弃两条情绪极端。
+  //    限制 status 是为了让标签名真正"名副其实"——只有心里确实藏着人的选手才可能解锁。
+  if (status === 'crush' && answers[14] === A && answers[28] === A) {
     unlocked.push(hiddenTitles.schrodingerEx);
   }
 
-  // ⑤ 电子乙方：Q2 = C（对方定）, Q3 = A（先低头）, Q5 = A（主动联系）
+  // ⑤ 电子乙方：Q2 = C（对方定约会地点）, Q3 = A（先低头道歉）, Q5 = A（主动追加消息）。
+  //    Q2 在 GD 维度上是 -2（被动），Q3 / Q5 是 +2（主动），表面看同一维度上自相矛盾——
+  //    这其实是乙方画像的核心：没有决策权却要承担全部的情绪劳动。故意不改成同向。
   if (answers[2] === C && answers[3] === A && answers[5] === A) {
     unlocked.push(hiddenTitles.electronicVendor);
   }
 
-  // ⑥ 空想家：前置题选 "solo"（纯单身），且主线 30 题中 ≥ 12 题选极端（A 或 C）。
-  //    过去阈值 6/30 太松，几乎所有 solo 玩家都会触发；12/30 ≈ 40%，更像"彩蛋"。
-  const status = getRelationshipStatus(answers);
   if (status === 'solo') {
     let extremeCount = 0;
     for (const q of questions) {
