@@ -177,15 +177,19 @@ export const hiddenPersonalityTriggers: HiddenPersonalityTrigger[] = [
       a.ratio.YF <= -0.85,
   },
 
-  // CPU · CPU 恋人 — Y 至顶 + 两条脑补题都命中 A（脑补不爱我 + 坏消息焦虑）
+  // CPU · CPU 恋人 — ambiguous only + Y 至顶 + 二脑补题并命中（脑补不爱我 + 坏消息焦虑）
+  //
+  // 设计原则：override 证据强度应严于 16 型，而非宽于。BAD_NEWS_PANIC 锚（Q49）只在
+  // ambiguous extensions 存在，旧 v0.4 初版以三元豁免 crush/solo 让 CPU 能跨状态触达，
+  // 结果"高 Y + 一条脑补"即可覆盖 16 型，证据偏弱。今按 DRAFT 收紧为状态门禁——
+  // 与 RAT / PURE / VOID / LIMBO 同型，余状态之高 Y 用户走 16 型正常归格。
   {
     code: 'CPU',
     test: (a) =>
+      a.status === 'ambiguous' &&
       a.ratio.YF >= 0.85 &&
       a.polarityAt('IMAGINE_NOT_LOVED') > 0 &&
-      // BAD_NEWS_PANIC 只在 ambiguous 路径上存在；crush / solo 的 CPU 触发
-      // 只靠 IMAGINE_NOT_LOVED 一条，即"单维极端 + polarity 命中"。
-      (a.status === 'ambiguous' ? a.polarityAt('BAD_NEWS_PANIC') > 0 : true),
+      a.polarityAt('BAD_NEWS_PANIC') > 0,
   },
 
   // CHAOS · 已读乱回 — 显性 F 或 L + 某一维度自相攻伐（≥ 2 道 A 同时 ≥ 2 道 C）

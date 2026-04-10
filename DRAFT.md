@@ -705,7 +705,7 @@ v0.4 触发条件均以 **语义锚 + 维度 ratio** 表达，避免与具体题
 1. **MAD · 发疯文学家** — `ratio.GD ≥ 0.9 && ratio.ZR ≥ 0.9 && ratio.NL ≥ 0.9 && ratio.YF ≥ 0.9`（四维几近压顶 GZNY）
 2. **RAT · 鼠鼠恋人** — `status === 'solo' && ratio.GD ≤ -0.6 && ratio.ZR ≤ -0.4 && ratio.NL ≤ -0.4 && ratio.YF ≥ 0.8`
 3. **PURE · 纯爱战士** — `(status === 'solo' || status === 'crush') && ratio.GD ≥ 0.8 && ratio.NL ≥ 0.6 && ratio.YF ≤ -0.6`
-4. **CPU · CPU 恋人** — `ratio.YF ≥ 0.8 && polarityOf(SEMANTIC.IMAGINE_NOT_LOVED) > 0 && polarityOf(SEMANTIC.BAD_NEWS_PANIC) > 0`
+4. **CPU · CPU 恋人** — `status === 'ambiguous' && ratio.YF ≥ 0.85 && polarityOf(SEMANTIC.IMAGINE_NOT_LOVED) > 0 && polarityOf(SEMANTIC.BAD_NEWS_PANIC) > 0`（v0.4 改版：加状态门禁。`BAD_NEWS_PANIC` 锚仅存 ambiguous 扩展段，其他状态之高 Y 用户回落 16 型正常归格，以保 override 证据强度严于 16 型）
 5. **CHAOS · 已读乱回** — `(ratio.YF ≤ -0.4 || ratio.NL ≤ -0.4) && lens.polarityVariance('ZR') ≥ 2`（一维内自相攻伐）
 6. **E-DOG · 赛博舔狗** — `Math.abs(ratio.NL) ≤ 0.2 && polarityOf(SEMANTIC.TWO_HOUR_NOREPLY) > 0 && polarityOf(SEMANTIC.POST_DATE_TEXT) > 0`
 7. **BENCH · 备胎之王** — `status === 'ambiguous' && ratio.GD ≥ 0.2 && ratio.ZR ≤ -0.4 && ratio.NL ≤ -0.2 && ratio.YF ≥ 0.4 && polarityOf(SEMANTIC.LIKE_OTHER_GENDER) > 0`

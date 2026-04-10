@@ -191,12 +191,17 @@ function classify16(scores: Scores): string {
  * @param retreatCount v0.3 · 答题过程中的"改答次数"，由前端 quiz 页累计后传入，触发「退退退」。
  *                     分享链接解码出的答案没有这个数据，缺省为 0——即分享者的"退退退"标签
  *                     不会被观众看到，这是故意的。
+ * @param statusOverride 来自 URL（v2 codec 前缀）的状态断言。若提供，优先于 `answers[32]`
+ *                       反推的状态，用于防手改 URL 场景——statusChar 与 answers[32] 不一致
+ *                       时以 URL 为准，令观者所见与分享链一致。quiz 作答流不传此参数，
+ *                       回落到从 answers 重构 status 的原路径。
  */
 export function getResult(
   answers: Record<number, number>,
   retreatCount = 0,
+  statusOverride?: RelationshipStatus,
 ): Result {
-  const status = getRelationshipStatus(answers);
+  const status = statusOverride ?? getRelationshipStatus(answers);
   const scores = calculateScores(answers, status);
   const tied = collectTies(scores);
   const closestCode = classify16(scores);

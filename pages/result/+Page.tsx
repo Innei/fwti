@@ -28,9 +28,9 @@ export default function Page() {
       const legacy = getLegacyResultV1(decoded.answers, retreatCount()) as Result
       return { result: legacy, isLegacy: true }
     }
-    // v2 链 → 当前 scorer。status 从 codec 解码直接传入（未来 Task 6 的
-    // ratio scoring 会消费此字段按路径过滤，当前 v0.3 scorer 暂时忽略）。
-    const result = getResult(decoded.answers, retreatCount())
+    // v2 链 → 当前 scorer。URL 携带的 statusChar 作为 override 传入——与 answers[32]
+    // 反推的 status 正常情况下同源；手改 URL 时以链标为准，观者所见与分享链一致。
+    const result = getResult(decoded.answers, retreatCount(), decoded.status)
     return { result, isLegacy: false }
   })
 
