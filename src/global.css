@@ -436,7 +436,17 @@ a.nav-logo:focus-visible {
   font-size: 56px;
   line-height: 1.12;
   color: #fff;
-  margin-bottom: 22px;
+  margin-bottom: 14px;
+  letter-spacing: -0.01em;
+}
+.home-subtitle {
+  font-family: var(--fwti-font-title);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.92);
+  margin: 0 auto 20px;
+  max-width: 640px;
   letter-spacing: -0.01em;
 }
 .home-lede {
@@ -2251,6 +2261,9 @@ a.nav-logo:focus-visible {
   .home-title {
     font-size: 44px;
   }
+  .home-subtitle {
+    font-size: 19px;
+  }
 }
 @media (max-width: 720px) {
   .nav-inner {
@@ -2261,6 +2274,9 @@ a.nav-logo:focus-visible {
   }
   .home-title {
     font-size: 36px;
+  }
+  .home-subtitle {
+    font-size: 17px;
   }
   .home-lede {
     font-size: 16px;
@@ -2389,6 +2405,9 @@ a.nav-logo:focus-visible {
 @media (max-width: 460px) {
   .home-title {
     font-size: 30px;
+  }
+  .home-subtitle {
+    font-size: 15px;
   }
   .result-name {
     font-size: 36px;

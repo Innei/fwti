@@ -36,7 +36,12 @@ export function HomePage(props: { onStart: () => void }) {
       <section class="home-hero">
         <div class="home-hero-inner">
           <div class="eyebrow eyebrow-on-green">Fèiwù Type Indicator</div>
-          <h1 class="home-title">自嘲型恋爱人格测试</h1>
+          <h1 class="home-title">
+            MBTI 已经过时了
+            <br />
+            FWTI 已经来了
+          </h1>
+          <p class="home-subtitle">自嘲型恋爱人格测试</p>
           <p class="home-lede">
             约 30–37 道灵魂拷问，四维交叉分析，
             <br />
