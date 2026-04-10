@@ -22,6 +22,12 @@ export interface Result {
   unlockedHiddenTitles: HiddenTitle[];
   /** 是否触发了骑墙党（≥2 个维度平票） */
   isLimbo: boolean;
+  /**
+   * LIMBO 下按"符号+默认废方向"硬分出的最接近人格代号。
+   * 非 LIMBO 场景下与 code 相同，方便结果页展示"硬要归类的话最接近 X"。
+   */
+  closestCode: string;
+  closestPersonality: typeof personalities[string];
   /** 被判为平票的维度列表（用于加星号显示） */
   tiedDimensions: Array<'GD' | 'ZR' | 'NL' | 'YF'>;
   /** 前置题选择：恋爱状态 */
@@ -87,8 +93,9 @@ export function detectHiddenTitles(
   const A = 0;
   const C = 2;
 
-  // ① 撤回大师：彩蛋题触发
-  if (scores.hidden >= 1) {
+  // ① 撤回大师：彩蛋题必须选 A（hidden=2），B（hidden=1）只是预警不解锁。
+  //    过去 >= 1 的阈值会让大多数人直接拿到"大师"称号，语气不匹配。
+  if (scores.hidden >= 2) {
     unlocked.push(hiddenTitles.retractMaster);
   }
 
@@ -113,7 +120,8 @@ export function detectHiddenTitles(
     unlocked.push(hiddenTitles.electronicVendor);
   }
 
-  // ⑥ 空想家：前置题选 "solo"（纯单身），且主线题 ≥ 6 题选极端（A 或 C）
+  // ⑥ 空想家：前置题选 "solo"（纯单身），且主线 30 题中 ≥ 12 题选极端（A 或 C）。
+  //    过去阈值 6/30 太松，几乎所有 solo 玩家都会触发；12/30 ≈ 40%，更像"彩蛋"。
   const status = getRelationshipStatus(answers);
   if (status === 'solo') {
     let extremeCount = 0;
@@ -123,7 +131,7 @@ export function detectHiddenTitles(
       const idx = answers[q.id];
       if (idx === A || idx === C) extremeCount++;
     }
-    if (extremeCount >= 6) {
+    if (extremeCount >= 12) {
       unlocked.push(hiddenTitles.daydreamer);
     }
   }
@@ -144,21 +152,18 @@ export function getResult(answers: Record<number, number>): Result {
 
   const isLimbo = tied.length >= 2;
 
-  let code: string;
-  let personality: typeof personalities[string];
+  // 平票 (== 0) 时默认归入 "废方向"：D / Z / N / Y。
+  // 统一写成 "严格比较 ? 另一方向 : 废方向"，else 分支一眼看出默认归属。
+  // 注意 GD 的废方向在负向（D），其余三维的废方向在正向（Z/N/Y），所以运算符并不一致——不是笔误。
+  const g = scores.GD > 0 ? 'G' : 'D';
+  const z = scores.ZR < 0 ? 'R' : 'Z';
+  const n = scores.NL < 0 ? 'L' : 'N';
+  const y = scores.YF < 0 ? 'F' : 'Y';
+  const closestCode = g + z + n + y;
+  const closestPersonality = personalities[closestCode];
 
-  if (isLimbo) {
-    code = 'LIMBO';
-    personality = personalities.LIMBO;
-  } else {
-    // 单维平票仍需落到一张人格卡；默认废方向采用 D / Z / N / Y。
-    const g = scores.GD > 0 ? 'G' : 'D';
-    const z = scores.ZR >= 0 ? 'Z' : 'R';
-    const n = scores.NL >= 0 ? 'N' : 'L';
-    const y = scores.YF >= 0 ? 'Y' : 'F';
-    code = g + z + n + y;
-    personality = personalities[code];
-  }
+  const code = isLimbo ? 'LIMBO' : closestCode;
+  const personality = isLimbo ? personalities.LIMBO : closestPersonality;
 
   let displayCode = code;
   if (!isLimbo && tied.length === 1) {
@@ -211,6 +216,8 @@ export function getResult(answers: Record<number, number>): Result {
     hasHiddenTitle,
     unlockedHiddenTitles,
     isLimbo,
+    closestCode,
+    closestPersonality,
     tiedDimensions: tied,
     status,
     scores,
