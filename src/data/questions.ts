@@ -23,7 +23,7 @@
  *   - VOID 证据（Q35，通过 polarityOf(SEMANTIC.OFFLINE_RELIEF) 访问）
  */
 
-export type Scale = 3 | 4 | 5;
+export type Scale = 3 | 4 | 5 | 6;
 export type QuestionDimension = 'GD' | 'ZR' | 'NL' | 'YF' | 'META';
 export type StatusKey = 'dating' | 'ambiguous' | 'crush' | 'solo';
 
@@ -32,12 +32,25 @@ export type QuestionVariant = {
   options?: (string | null)[];
 };
 
+export type ScoringDimension = Exclude<QuestionDimension, 'META'>;
+
+/**
+ * 次要维度贡献：某些"分支类"选项（如"我不吵架"的 follow-up）在主维度之外
+ * 亦应向另一维度投一票。scoring 会将 secondary.score 除以 2 后累加到 target dim。
+ * 仅用于 follow-up 级别的细分，非必要勿加——它会同时贡献该 dim 的分母。
+ */
+export interface OptionSecondary {
+  dimension: ScoringDimension;
+  score: number;
+}
+
 export interface Option {
   label: string;
   text: string;
   score: number;
   hidden?: number;
   meta?: StatusKey;
+  secondary?: OptionSecondary;
 }
 
 export interface Question {
@@ -156,25 +169,34 @@ const trunkGD: Question[] = [
 /** 主干 · Z/R 情绪表达（5 题）· ids: 9, 10, 12, 13, 15 */
 const trunkZR: Question[] = [
   {
+    // v0.4 · 改为正向情绪表达测点。负向情绪另有 Q10/Q12/Q13/Q15 覆盖。
+    // F 选项为分支：触发 follow-up Q78 细分"真佛 / 压抑 / 不投入"。
     id: 9,
     dimension: 'ZR',
-    scale: 3,
-    text: 'TA 做了让你不爽的事，你的第一反应是？',
+    scale: 6,
+    text: 'TA 做了件让你特别上头的事（记住你随口提过的喜好 / 走心小礼 / 突然一句情话），你的第一反应是？',
     options: [
-      { label: 'A', text: '当场就说出来，我忍不了一秒钟', score: 2 },
-      { label: 'B', text: '先消化一下，看严不严重再决定说不说', score: 0 },
-      { label: 'C', text: '算了，说了也没用，默默在心里记一笔', score: -2 },
+      { label: 'A', text: '立刻尖叫截屏发闺蜜，当场化身磕 CP 本 CP', score: 2 },
+      { label: 'B', text: '嘴上装镇定，心里 BGM 已经循环到第 N 轮', score: 1 },
+      { label: 'C', text: '开心地道谢，表达适度', score: 0 },
+      { label: 'D', text: '表面淡淡"嗯，谢谢"，回家偷偷截屏存三层文件夹', score: -1 },
+      { label: 'E', text: '面无表情说"哦，挺好"，内心震天响但一个字也漏不出去', score: -2 },
+      { label: 'F', text: '我基本起不了波澜，这种事对我触动不大', score: 0 },
     ],
   },
   {
+    // v0.4 · F 选项为分支：触发 follow-up Q79 细分"真佛 / 压抑 / 不投入"。
     id: 10,
     dimension: 'ZR',
-    scale: 3,
+    scale: 6,
     text: '你们因为小事吵架了，你的吵架风格是？',
     options: [
-      { label: 'A', text: '声音越来越大，新账旧账一起翻，恨不得写篇论文论证 TA 的过错', score: 2 },
-      { label: 'B', text: '就事论事，吵完拉倒', score: 0 },
-      { label: 'C', text: '沉默是金，你吵你的，我的嘴是缝上的', score: -2 },
+      { label: 'A', text: '新账旧账 PPT 式陈列，配引用配时间线，论文答辩都没我吵架有结构', score: 2 },
+      { label: 'B', text: '声音不大句句扎心，金句输出让 TA 自我怀疑到天亮', score: 1 },
+      { label: 'C', text: '就事论事，吵完即散，不延长不续费', score: 0 },
+      { label: 'D', text: '三连"行吧""随你""你说得对"，空气肉眼可见降温', score: -1 },
+      { label: 'E', text: '嘴上拉闸，眼神游离，任 TA 自演整场独角戏', score: -2 },
+      { label: 'F', text: '我不吵架，心平气和，TA 发火我当新闻听', score: 0 },
     ],
   },
   {
@@ -933,6 +955,44 @@ const followupQuestions: Question[] = [
       { label: 'C', text: '查着查着就不想回 TA 消息了', score: -2 },
     ],
   },
+  {
+    // v0.4 · Q9(正向情绪) F 分支 follow-up · 细分真佛 / 压抑 / 不投入
+    // B 为"其实心里尖叫只是压着" → 深忍
+    // C 兼推 NL 离：对关系投入不足的另一面
+    id: 78,
+    dimension: 'ZR',
+    scale: 3,
+    tag: '补充题',
+    text: '你方说"起不了波澜"的真相是——',
+    options: [
+      { label: 'A', text: '真的不吃这套，甜腻对我来说像糖水', score: 0 },
+      { label: 'B', text: '其实心里尖叫过，只是习惯把开心都压住', score: -2 },
+      {
+        label: 'C',
+        text: '对这段关系投入不深，TA 做什么都触不到我',
+        score: 0,
+        secondary: { dimension: 'NL', score: -2 },
+      },
+    ],
+  },
+  {
+    // v0.4 · Q10(吵架风格) F 分支 follow-up · 同构：真佛 / 压抑 / 不投入
+    id: 79,
+    dimension: 'ZR',
+    scale: 3,
+    tag: '补充题',
+    text: '你方的"心平气和"实情是——',
+    options: [
+      { label: 'A', text: '真佛系，对感情里的争执没胜负心，TA 发完也就过了', score: 0 },
+      { label: 'B', text: '其实是习惯性先压着，回头一个人复盘到天亮', score: -2 },
+      {
+        label: 'C',
+        text: '不太投入，吵不吵对我没差',
+        score: 0,
+        secondary: { dimension: 'NL', score: -2 },
+      },
+    ],
+  },
 ];
 
 const followupById: Record<number, Question> = Object.fromEntries(
@@ -951,6 +1011,14 @@ export const followups: Record<number, Record<number, Question[]>> = {
   5: {
     0: [followupById[68]],
     1: [followupById[68]],
+  },
+  // Q9（正向情绪）选 F（分支"起不了波澜"）→ Q78
+  9: {
+    5: [followupById[78]],
+  },
+  // Q10（吵架风格）选 F（分支"心平气和"）→ Q79
+  10: {
+    5: [followupById[79]],
   },
   // Q26（翻聊天记录）选 A or B → Q69
   26: {
@@ -1058,13 +1126,23 @@ function assertInvariants(): void {
     }
   }
 
-  // 4. scores in {-2,-1,0,1,2}
+  // 4. scores in {-2,-1,0,1,2}（主维度与次维度同样校验）
   const allowed = new Set([-2, -1, 0, 1, 2]);
   for (const q of questions) {
     for (const opt of q.options) {
       if (!allowed.has(opt.score)) {
         throw new Error(
           `[questions invariant] Q${q.id} option "${opt.label}" invalid score ${opt.score}`,
+        );
+      }
+      if (opt.secondary && !allowed.has(opt.secondary.score)) {
+        throw new Error(
+          `[questions invariant] Q${q.id} option "${opt.label}" invalid secondary score ${opt.secondary.score}`,
+        );
+      }
+      if (opt.secondary && opt.secondary.dimension === q.dimension) {
+        throw new Error(
+          `[questions invariant] Q${q.id} option "${opt.label}" secondary dim must differ from primary`,
         );
       }
     }

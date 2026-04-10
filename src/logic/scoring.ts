@@ -78,7 +78,8 @@ export interface Result {
 // ───────────────────────────────────────────────────────────────
 
 export function resolveOptionIndex(value: number): number | null {
-  if (!Number.isInteger(value) || value < 0 || value > 4) return null;
+  // 0..5 · 支持最多 6 个选项（5 档单调 + 1 档分支）
+  if (!Number.isInteger(value) || value < 0 || value > 5) return null;
   return value;
 }
 
@@ -132,12 +133,24 @@ export function calculateScores(
       continue;
     }
 
-    const delta = option.score / 2; // 3 档: ±1/0；5 档: ±1/±0.5/0
+    const delta = option.score / 2; // 3 档: ±1/0；5 档: ±1/±0.5/0；6 档（分支）：F 一般为 0
     switch (q.dimension) {
       case 'GD': scores.rawGD += delta; scores.nGD += 1; break;
       case 'ZR': scores.rawZR += delta; scores.nZR += 1; break;
       case 'NL': scores.rawNL += delta; scores.nNL += 1; break;
       case 'YF': scores.rawYF += delta; scores.nYF += 1; break;
+    }
+
+    // 次要维度贡献：follow-up 细分时 C 选项可同时打两维。
+    // 亦贡献 n 分母——语义上该 follow-up 对两维都"表达了一次"。
+    if (option.secondary) {
+      const sdelta = option.secondary.score / 2;
+      switch (option.secondary.dimension) {
+        case 'GD': scores.rawGD += sdelta; scores.nGD += 1; break;
+        case 'ZR': scores.rawZR += sdelta; scores.nZR += 1; break;
+        case 'NL': scores.rawNL += sdelta; scores.nNL += 1; break;
+        case 'YF': scores.rawYF += sdelta; scores.nYF += 1; break;
+      }
     }
   }
 

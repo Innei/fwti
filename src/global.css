@@ -1268,7 +1268,7 @@ a.nav-logo:focus-visible {
 /* inline 元素多行时背景会按行碎片绘制，导出 PNG 易「挤出」药丸；用 inline-block 整块包裹。 */
 .share-image-chip {
   display: inline-block;
-  /* flex 子项默认可被压窄，窄盒 + break-word 会在 CJK 词中间乱断（如 学|家）；保持宽度贴内容 */
+  /* flex 子项默认可被压窄，窄盒 + break-word 会在 CJK 词中间乱断（如 学 | 家）；保持宽度贴内容 */
   flex: 0 0 auto;
   max-width: 100%;
   box-sizing: border-box;
@@ -1461,20 +1461,16 @@ a.nav-logo:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: var(--fwti-text-mid);
   color: #fff;
   font-family: var(--fwti-font-title);
   font-weight: 700;
   font-size: 12px;
   letter-spacing: 0.02em;
+  transition: background 0.15s ease;
 }
-.quiz-opt-badge-a {
+.quiz-opt.is-selected .quiz-opt-badge {
   background: var(--fwti-green);
-}
-.quiz-opt-badge-b {
-  background: var(--fwti-text-soft);
-}
-.quiz-opt-badge-c {
-  background: #52525b;
 }
 .quiz-opt-text {
   flex: 1;
@@ -1585,7 +1581,9 @@ a.nav-logo:focus-visible {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s ease, background 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
 }
 .legacy-banner-cta:hover {
   background: #3e2c07;

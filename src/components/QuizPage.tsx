@@ -1,52 +1,52 @@
-import { For, Show } from 'solid-js';
+import { For, Show } from 'solid-js'
 import {
   resolveQuestionText,
   resolveOptionText,
   type Question,
-} from '../data/questions';
+} from '../data/questions'
 import {
   getRelationshipStatus,
   type RelationshipStatus,
-} from '../logic/scoring';
-import { TopNav } from './Nav';
+} from '../logic/scoring'
+import { TopNav } from './Nav'
 
 export function QuizPage(props: {
   /** 当前路径（META + trunk + extensions[status] + 已触发 follow-up） */
-  path: Question[];
+  path: Question[]
   /** 当前路径中非 META 题总数 */
-  mainTotal: number;
+  mainTotal: number
   /** 已作答的路径内非 META 题数量 */
-  mainProgress: number;
+  mainProgress: number
   /** 前置题是否已作答 */
-  metaAnswered: boolean;
-  answers: Record<number, number>;
-  onSelect: (qId: number, optionIdx: number) => void;
-  onSubmit: () => void;
-  canSubmit: boolean;
+  metaAnswered: boolean
+  answers: Record<number, number>
+  onSelect: (qId: number, optionIdx: number) => void
+  onSubmit: () => void
+  canSubmit: boolean
 }) {
   const pct = () =>
     props.mainTotal === 0
       ? 0
-      : Math.round((props.mainProgress / props.mainTotal) * 100);
+      : Math.round((props.mainProgress / props.mainTotal) * 100)
   // 根据前置题结果，派生当前的关系语境；未选时为 null（使用默认题干）
-  const status = (): RelationshipStatus => getRelationshipStatus(props.answers);
+  const status = (): RelationshipStatus => getRelationshipStatus(props.answers)
   // 基于 path() 的 1-based 连续序号（跳过 META）。path 随 follow-up 触发而变长/变短，
   // 所以每次渲染都从当前 path 现算。
   const mainIndexOf = (qId: number): number => {
-    let idx = 0;
+    let idx = 0
     for (const q of props.path) {
-      if (q.dimension === 'META') continue;
-      idx += 1;
-      if (q.id === qId) return idx;
+      if (q.dimension === 'META') continue
+      idx += 1
+      if (q.id === qId) return idx
     }
-    return 0;
-  };
-  const mainLeft = () => Math.max(0, props.mainTotal - props.mainProgress);
+    return 0
+  }
+  const mainLeft = () => Math.max(0, props.mainTotal - props.mainProgress)
   const submitLabel = () => {
-    if (props.canSubmit) return '查看结果';
-    if (!props.metaAnswered) return '请先完成前置题';
-    return `还差 ${mainLeft()} 题`;
-  };
+    if (props.canSubmit) return '查看结果'
+    if (!props.metaAnswered) return '请先完成前置题'
+    return `还差 ${mainLeft()} 题`
+  }
 
   return (
     <div class="page quiz-page">
@@ -89,14 +89,7 @@ export function QuizPage(props: {
 
               <div class="quiz-options" role="group" aria-label="选项">
                 <For each={q.options}>
-                  {(opt, oi) => {
-                    const badgeClass = () => {
-                      const L = opt.label;
-                      if (L === 'A') return 'quiz-opt-badge quiz-opt-badge-a';
-                      if (L === 'B') return 'quiz-opt-badge quiz-opt-badge-b';
-                      return 'quiz-opt-badge quiz-opt-badge-c';
-                    };
-                    return (
+                  {(opt, oi) => (
                       <button
                         type="button"
                         class="quiz-opt"
@@ -107,13 +100,12 @@ export function QuizPage(props: {
                         aria-label={`选项 ${opt.label}`}
                         onClick={() => props.onSelect(q.id, oi())}
                       >
-                        <span class={badgeClass()}>{opt.label}</span>
+                        <span class="quiz-opt-badge">{opt.label}</span>
                         <span class="quiz-opt-text">
                           {resolveOptionText(q, oi(), status())}
                         </span>
                       </button>
-                    );
-                  }}
+                  )}
                 </For>
               </div>
 
@@ -155,5 +147,5 @@ export function QuizPage(props: {
         </div>
       </div>
     </div>
-  );
+  )
 }
