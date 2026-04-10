@@ -100,4 +100,4 @@ pnpm build
 
 ## License
 
-ISC
+[MIT](LICENSE)
