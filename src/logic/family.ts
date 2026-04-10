@@ -39,6 +39,45 @@ export const FAMILY_THEMES: Record<Family, FamilyTheme> = {
   limbo: { key: 'limbo', name: '意难平学家', color: '#5A3A5E', tint: 'rgba(90, 58, 94, 0.10)' },
 };
 
+/** 首页预览图例：四族（16 型卡片角标色渊源） */
+export const PREVIEW_LEGEND_QUADRANT_ORDER = ['gz', 'gr', 'dz', 'dr'] as const satisfies readonly Family[];
+
+/** 四族图例点击预览时，解析用锚点型（与 PROMPT 四族 rollout 锚一致）。 */
+export const PREVIEW_QUADRANT_ANCHOR_CODE = {
+  gz: 'GZNY',
+  gr: 'GRNY',
+  dz: 'DZNY',
+  dr: 'DRNY',
+} as const satisfies Record<(typeof PREVIEW_LEGEND_QUADRANT_ORDER)[number], string>;
+
+/** 首页预览图例：隐藏人格，顺序同 DRAFT 判定链（ALL 兜底置末） */
+export const PREVIEW_LEGEND_HIDDEN_ORDER = [
+  'mad',
+  'rat',
+  'pure',
+  'cpu',
+  'chaos',
+  'edog',
+  'bench',
+  'void',
+  'limbo',
+  'all',
+] as const satisfies readonly Family[];
+
+/** 隐藏行 family key → 人格代号（取 `personalities[code].emoji`） */
+export const PREVIEW_HIDDEN_PERSONALITY_CODE = {
+  mad: 'MAD',
+  rat: 'RAT',
+  pure: 'PURE',
+  cpu: 'CPU',
+  chaos: 'CHAOS',
+  edog: 'E-DOG',
+  bench: 'BENCH',
+  void: 'VOID',
+  limbo: 'LIMBO',
+  all: 'ALL',
+} as const satisfies Record<(typeof PREVIEW_LEGEND_HIDDEN_ORDER)[number], string>;
+
 /** 隐藏人格代号 → family key 映射 */
 const HIDDEN_FAMILY_MAP: Record<string, Family> = {
   ALL: 'all',

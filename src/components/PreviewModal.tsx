@@ -107,7 +107,12 @@ export function PreviewModal() {
                 <div class="preview-modal-matches">
                   <div class="preview-modal-match best">
                     <span class="match-lbl">最佳</span>
-                    <span class="match-code">{matches.best.code}</span>
+                    <div class="match-code-row">
+                      <span class="match-emoji" aria-hidden="true">
+                        {personalities[matches.best.code]?.emoji}
+                      </span>
+                      <span class="match-code">{matches.best.code}</span>
+                    </div>
                     <span class="match-name">
                       {personalities[matches.best.code]?.name}
                     </span>
@@ -117,7 +122,12 @@ export function PreviewModal() {
                   </div>
                   <div class="preview-modal-match worst">
                     <span class="match-lbl">最糟</span>
-                    <span class="match-code">{matches.worst.code}</span>
+                    <div class="match-code-row">
+                      <span class="match-emoji" aria-hidden="true">
+                        {personalities[matches.worst.code]?.emoji}
+                      </span>
+                      <span class="match-code">{matches.worst.code}</span>
+                    </div>
                     <span class="match-name">
                       {personalities[matches.worst.code]?.name}
                     </span>

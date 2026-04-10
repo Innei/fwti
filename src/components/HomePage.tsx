@@ -1,6 +1,12 @@
 import { For } from 'solid-js';
 import { personalities } from '../data/personalities';
-import { FAMILY_THEMES, getFamilyTheme } from '../logic/family';
+import {
+  FAMILY_THEMES,
+  getFamilyTheme,
+  PREVIEW_HIDDEN_PERSONALITY_CODE,
+  PREVIEW_LEGEND_HIDDEN_ORDER,
+  PREVIEW_LEGEND_QUADRANT_ORDER,
+} from '../logic/family';
 import Portrait from './Portrait';
 import { TopNav } from './Nav';
 import { setPreviewDetail } from '../state';
@@ -108,14 +114,57 @@ export function HomePage(props: { onStart: () => void }) {
           </For>
         </div>
         <div class="preview-legend">
-          <For each={Object.values(FAMILY_THEMES)}>
-            {(f) => (
-              <div class="legend-item">
-                <span class="legend-dot" style={{ background: f.color }} />
-                <span class="legend-label">{f.name}</span>
-              </div>
-            )}
-          </For>
+          <div class="preview-legend-block">
+            <div class="preview-legend-block-head">
+              <span class="preview-legend-kicker">四族色谱</span>
+              <span class="preview-legend-note">
+                上图 16 张卡片之主色来自 G/D × Z/R 四象限
+              </span>
+            </div>
+            <div class="preview-legend-row preview-legend-row--quadrants">
+              <For each={PREVIEW_LEGEND_QUADRANT_ORDER}>
+                {(key) => {
+                  const f = FAMILY_THEMES[key];
+                  return (
+                    <div class="legend-item">
+                      <span class="legend-dot" style={{ background: f.color }} aria-hidden="true" />
+                      <span class="legend-label">{f.name}</span>
+                    </div>
+                  );
+                }}
+              </For>
+            </div>
+          </div>
+          <div class="preview-legend-block preview-legend-block--hidden">
+            <div class="preview-legend-block-head">
+              <span class="preview-legend-kicker">隐藏人格 · 彩蛋</span>
+              <span class="preview-legend-note">
+                需特定作答触发，判定点见结果页；图例可点预览（含立绘），此墙不设卡片格
+              </span>
+            </div>
+            <div class="preview-legend-row preview-legend-row--chips">
+              <For each={PREVIEW_LEGEND_HIDDEN_ORDER}>
+                {(key) => {
+                  const f = FAMILY_THEMES[key];
+                  const code = PREVIEW_HIDDEN_PERSONALITY_CODE[key];
+                  const p = personalities[code];
+                  return (
+                    <button
+                      type="button"
+                      class="legend-chip"
+                      onClick={() => setPreviewDetail(p)}
+                      aria-label={`${p.name}（${p.code}）— 查看释义`}
+                    >
+                      <span class="legend-chip-emoji" aria-hidden="true">
+                        {p.emoji}
+                      </span>
+                      <span class="legend-chip-label">{f.name}</span>
+                    </button>
+                  );
+                }}
+              </For>
+            </div>
+          </div>
         </div>
       </section>
 

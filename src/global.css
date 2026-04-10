@@ -930,6 +930,17 @@ a.nav-logo:focus-visible {
 .preview-modal-match.best .match-lbl {
   color: var(--tile-color);
 }
+.match-code-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.match-emoji {
+  font-size: 1.2em;
+  line-height: 1;
+  flex-shrink: 0;
+}
 .match-code {
   font-family: 'SF Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 13px;
@@ -1197,13 +1208,14 @@ a.nav-logo:focus-visible {
   color: var(--fwti-text-dark);
 }
 .share-image-card-eng {
-  font-size: 15px;
+  font-family: var(--fwti-font-title);
+  font-size: 24px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--fwti-accent);
   margin: 0 0 6px;
-  line-height: 1.45;
+  line-height: 1.25;
   padding: 2px 0;
 }
 .share-image-card-slang {
@@ -1213,9 +1225,9 @@ a.nav-logo:focus-visible {
 }
 .share-image-card-code {
   font-family: var(--fwti-font-title);
-  font-size: 22px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--fwti-text-soft);
   margin: 0 0 10px;
@@ -1322,15 +1334,55 @@ a.nav-logo:focus-visible {
 
 .preview-legend {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: 28px;
-  margin-top: 32px;
+  margin-top: 36px;
+  max-width: 920px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 20px;
+}
+.preview-legend-block {
+  text-align: center;
+}
+.preview-legend-block-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.preview-legend-kicker {
+  font-family: var(--fwti-font-title);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--fwti-text-dark);
+}
+.preview-legend-note {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--fwti-text-soft);
+  max-width: 34em;
+}
+.preview-legend-row {
+  display: flex;
+  justify-content: center;
   flex-wrap: wrap;
+}
+.preview-legend-row--quadrants {
+  gap: 14px 28px;
+}
+.preview-legend-row--chips {
+  gap: 10px 10px;
+  justify-content: center;
 }
 .legend-item {
   display: flex;
   align-items: center;
   gap: 8px;
+  font-family: inherit;
   font-size: 13px;
   color: var(--fwti-text-mid);
 }
@@ -1338,6 +1390,54 @@ a.nav-logo:focus-visible {
   width: 12px;
   height: 12px;
   border-radius: 50%;
+  flex-shrink: 0;
+}
+.legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 13px 7px 11px;
+  border-radius: 999px;
+  background: var(--fwti-bg-soft);
+  border: 1px solid var(--fwti-border);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fwti-text-mid);
+  line-height: 1.35;
+  white-space: nowrap;
+}
+button.legend-chip {
+  /* 同上：font: inherit 会吃掉 .legend-chip 的 12px */
+  appearance: none;
+  margin: 0;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+button.legend-chip:hover {
+  border-color: var(--fwti-border-strong);
+  box-shadow: 0 2px 10px var(--fwti-preview-tile-shadow);
+}
+button.legend-chip:focus-visible {
+  outline: 2px solid var(--fwti-accent, var(--fwti-green));
+  outline-offset: 2px;
+}
+.legend-chip-emoji {
+  font-size: 1.1em;
+  line-height: 1;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.legend-chip-label {
+  letter-spacing: 0.01em;
+}
+.preview-legend-block--hidden .legend-chip {
+  background: var(--fwti-surface);
 }
 
 /* ===== HOME FOOTER ===== */
@@ -2343,6 +2443,22 @@ a.nav-logo:focus-visible {
   }
   .home-preview {
     padding: 0 20px;
+  }
+  .preview-legend {
+    padding: 0 4px;
+    gap: 22px;
+  }
+  .preview-legend-note {
+    font-size: 11px;
+  }
+  .preview-legend-row--quadrants {
+    gap: 12px 18px;
+  }
+  .legend-chip {
+    white-space: normal;
+    max-width: 100%;
+    justify-content: center;
+    text-align: center;
   }
   .preview-grid {
     grid-template-columns: repeat(2, 1fr);
