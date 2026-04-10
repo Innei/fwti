@@ -1,11 +1,23 @@
 export type QuestionDimension = 'GD' | 'ZR' | 'NL' | 'YF' | 'META';
 
+/** 与 RelationshipStatus 对齐；不导入以避免循环依赖。 */
+type StatusKey = 'active' | 'crush' | 'solo';
+
+/**
+ * 单题在特定恋爱状态下的文本覆写。
+ * - text：整题题干替换
+ * - options：按索引覆写选项文案；null 表示该选项沿用默认
+ */
+export type QuestionVariant = {
+  text?: string;
+  options?: (string | null)[];
+};
+
 export interface Question {
   id: number;
   text: string;
   dimension: QuestionDimension;
   tag?: string; // 补充题 / 彩蛋 / 前置
-  note?: string; // 小字说明（可选）
   options: {
     label: string;
     text: string;
@@ -13,6 +25,34 @@ export interface Question {
     hidden?: number; // 隐藏纠结值
     meta?: string;   // META 题选项携带的语义标签（有对象 / 暧昧 / 单身藏 / 纯单身）
   }[];
+  /**
+   * 基于 META 前置题（恋爱状态）的题干 / 选项替换。
+   * 默认 active（"脑子里有一个明确的 TA"）使用原文；
+   * crush / solo 可按需覆写，让题目在单身场景下不至于错位。
+   */
+  variants?: Partial<Record<StatusKey, QuestionVariant>>;
+}
+
+/** 根据当前恋爱状态返回该题应当显示的题干。 */
+export function resolveQuestionText(
+  q: Question,
+  status: StatusKey | null,
+): string {
+  if (!status || !q.variants) return q.text;
+  return q.variants[status]?.text ?? q.text;
+}
+
+/** 根据当前恋爱状态返回某个选项应当显示的文案。 */
+export function resolveOptionText(
+  q: Question,
+  optionIdx: number,
+  status: StatusKey | null,
+): string {
+  const fallback = q.options[optionIdx]?.text ?? '';
+  if (!status || !q.variants) return fallback;
+  const v = q.variants[status];
+  if (!v?.options) return fallback;
+  return v.options[optionIdx] ?? fallback;
 }
 
 /**
@@ -28,8 +68,7 @@ export const questions: Question[] = [
     id: 32,
     dimension: 'META',
     tag: '前置',
-    text: '你目前的恋爱状态是？（这题不计分，只是让后面的题目更贴合你）',
-    note: '下文的"TA"会根据你的选择自动投射到你当下在意的那个人身上。',
+    text: '开始之前——你目前的恋爱状态是？',
     options: [
       { label: 'A', text: '有对象 / 正在恋爱 / 正在暧昧，总之脑子里有一个明确的 TA', score: 0, meta: 'active' },
       { label: 'B', text: '单身，但心里藏着某个人 / 念念不忘的历任', score: 0, meta: 'crush' },
@@ -67,6 +106,14 @@ export const questions: Question[] = [
       { label: 'B', text: '谁先受不了谁先开口，看缘分', score: 0 },
       { label: 'C', text: 'TA 不找我，我能冷到地球毁灭', score: -2 },
     ],
+    variants: {
+      crush: {
+        text: '你和心里那个 TA 关系突然变僵、两天没说话了，你会？',
+      },
+      solo: {
+        text: '想象你正在恋爱，和对象冷战了两天，你会？',
+      },
+    },
   },
   {
     id: 4,
@@ -201,6 +248,14 @@ export const questions: Question[] = [
       { label: 'B', text: '每天聊一聊就好，不用时刻在线', score: 0 },
       { label: 'C', text: '有事说事，没事各忙各的', score: -2 },
     ],
+    variants: {
+      crush: {
+        text: '如果有一天你和心里那个 TA 真的在一起了，你理想的聊天频率是？',
+      },
+      solo: {
+        text: '想象你谈恋爱了，你理想的聊天频率是？',
+      },
+    },
   },
   {
     id: 17,
@@ -211,6 +266,14 @@ export const questions: Question[] = [
       { label: 'B', text: '好的，玩得开心，记得告诉我你到家了', score: 0 },
       { label: 'C', text: '太好了，我正好有个完美的独处之夜', score: -2 },
     ],
+    variants: {
+      crush: {
+        text: '假设 TA 是你对象，TA 说今晚要和朋友出去玩，你的反应是？',
+      },
+      solo: {
+        text: '想象你的对象说今晚要和朋友出去玩，你的反应是？',
+      },
+    },
   },
   {
     id: 18,
@@ -221,6 +284,16 @@ export const questions: Question[] = [
       { label: 'B', text: '一起待半天，各自安排半天', score: 0 },
       { label: 'C', text: '给我一整个下午独处，否则我会枯萎', score: -2 },
     ],
+    variants: {
+      solo: {
+        text: '想象你谈恋爱了，你理想的周末是？',
+        options: [
+          '和对象从早腻到晚，做什么都行，只要在一起',
+          null,
+          null,
+        ],
+      },
+    },
   },
   {
     id: 19,
@@ -241,6 +314,14 @@ export const questions: Question[] = [
       { label: 'B', text: '每天晚上通个电话就好', score: 0 },
       { label: 'C', text: '终于可以一个人看剧打游戏吃泡面了！', score: -2 },
     ],
+    variants: {
+      crush: {
+        text: '假设 TA 已经是你对象，TA 出差 / 离开你一个礼拜，你会？',
+      },
+      solo: {
+        text: '想象你恋爱了，对象出差 / 离开你一个礼拜，你会？',
+      },
+    },
   },
   {
     id: 21,
@@ -255,12 +336,20 @@ export const questions: Question[] = [
   {
     id: 22,
     dimension: 'NL',
-    text: '如果你和 TA 在一起，你会主动分享手机密码 / 社交账号密码吗？',
+    text: '你会主动跟 TA 分享手机密码 / 社交账号密码吗？',
     options: [
       { label: 'A', text: '会，我俩不分你我', score: 2 },
       { label: 'B', text: '知道但不怎么看对方的', score: 0 },
       { label: 'C', text: '不会，这是我最后的领土', score: -2 },
     ],
+    variants: {
+      crush: {
+        text: '假设 TA 和你在一起了，你会主动分享手机密码 / 社交账号密码吗？',
+      },
+      solo: {
+        text: '想象你谈恋爱了，你会主动跟对象分享手机密码 / 社交账号密码吗？',
+      },
+    },
   },
   {
     id: 23,
@@ -283,6 +372,14 @@ export const questions: Question[] = [
       { label: 'B', text: '嗯，别太晚回来就好', score: 0 },
       { label: 'C', text: '哦，知道了。（真的只是"知道了"，没有内心戏）', score: -2 },
     ],
+    variants: {
+      crush: {
+        text: '你看到 TA 和某个异性朋友单独吃饭，你的内心 OS 是？',
+      },
+      solo: {
+        text: '想象你对象和异性朋友单独吃饭，你的内心 OS 是？',
+      },
+    },
   },
   {
     id: 25,
@@ -313,6 +410,11 @@ export const questions: Question[] = [
       { label: 'B', text: '注意到了，有点酸，但不至于太在意', score: 0 },
       { label: 'C', text: '点赞而已，你不也点吗', score: -2 },
     ],
+    variants: {
+      solo: {
+        text: '想象你对象点赞了一个异性的自拍，你会？',
+      },
+    },
   },
   {
     id: 28,
@@ -343,6 +445,11 @@ export const questions: Question[] = [
       { label: 'B', text: '酸一下，然后自我调节', score: 0 },
       { label: 'C', text: '确实好看，我也觉得', score: -2 },
     ],
+    variants: {
+      solo: {
+        text: '想象你对象当着你的面夸别人好看，你的反应是？',
+      },
+    },
   },
 
   // ===== 隐藏彩蛋题 =====
