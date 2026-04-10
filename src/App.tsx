@@ -18,6 +18,7 @@ import {
   type Result,
   type RelationshipStatus,
 } from './logic/scoring'
+import { navigate } from 'vike/client/router'
 import { getFamilyTheme, FAMILY_THEMES, getFamily } from './logic/family'
 import Portrait from './components/Portrait'
 import {
@@ -785,6 +786,23 @@ export function ResultPage(props: { result: Result; onRestart: () => void }) {
   )
 }
 
+function NavLogo() {
+  return (
+    <a
+      class="nav-logo"
+      href="/"
+      aria-label="返回首页"
+      onClick={(e) => {
+        e.preventDefault()
+        void navigate('/')
+      }}
+    >
+      <span class="logo-mark" aria-hidden="true" />
+      <span class="logo-text">FWTI</span>
+    </a>
+  )
+}
+
 function GithubNavLink() {
   return (
     <a
@@ -809,10 +827,7 @@ function TopNav(props: { meta?: string }) {
   return (
     <nav class="top-nav">
       <div class="nav-inner">
-        <div class="nav-logo">
-          <span class="logo-mark" aria-hidden="true" />
-          <span class="logo-text">FWTI</span>
-        </div>
+        <NavLogo />
         <div class="nav-right">
           <Show when={props.meta}>
             <div class="nav-meta">{props.meta}</div>
@@ -829,10 +844,7 @@ function ResultNav(props: { onRestart: () => void }) {
   return (
     <nav class="top-nav">
       <div class="nav-inner">
-        <div class="nav-logo">
-          <span class="logo-mark" aria-hidden="true" />
-          <span class="logo-text">FWTI</span>
-        </div>
+        <NavLogo />
         <div class="nav-right">
           <button class="nav-restart" type="button" onClick={props.onRestart}>
             重新测试

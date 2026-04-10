@@ -209,6 +209,16 @@ body {
   align-items: center;
   gap: 10px;
 }
+a.nav-logo {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+a.nav-logo:focus-visible {
+  outline: 2px solid var(--fwti-accent, var(--fwti-green));
+  outline-offset: 3px;
+  border-radius: 8px;
+}
 .logo-mark {
   width: 22px;
   height: 22px;
@@ -1797,9 +1807,40 @@ body {
   .home-lede {
     font-size: 16px;
   }
+  /* Match desktop “three across” rhythm: horizontal strip + snap (no tall stack). */
   .home-tips {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 14px;
     margin-top: -50px;
+    padding: 0 20px 8px;
+    max-width: none;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 20px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .home-tips .tip-card {
+    flex: 0 0 min(300px, calc(100vw - 52px));
+    scroll-snap-align: start;
+    padding: 24px 20px;
+  }
+  .home-tips .tip-title {
+    font-size: 19px;
+  }
+  .home-tips .tip-desc {
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .home-tips {
+      scroll-snap-type: none;
+    }
   }
   .home-preview {
     padding: 0 20px;
@@ -1852,8 +1893,12 @@ body {
   .result-name {
     font-size: 44px;
   }
+  /* Keep hero typography scale aligned with desktop (68/64 ≈ 1.06). */
   .result-eng {
-    font-size: 22px;
+    font-size: 47px;
+  }
+  .result-code {
+    font-size: 18px;
   }
   .result-tagline {
     font-size: 17px;
@@ -1891,7 +1936,10 @@ body {
     font-size: 36px;
   }
   .result-eng {
-    font-size: 18px;
+    font-size: 38px;
+  }
+  .result-code {
+    font-size: 15px;
   }
   .quiz-item-text {
     font-size: 19px;
