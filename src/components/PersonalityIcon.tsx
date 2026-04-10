@@ -1,7 +1,7 @@
 import type { JSX } from 'solid-js';
 
 /**
- * FWTI · 16 种恋爱废物人格 · 简笔轮廓图标
+ * FWTI · 16 种恋爱人格 · 简笔轮廓图标
  * 统一 viewBox 100×100 · stroke 4.2 · round caps
  * 颜色通过 currentColor 继承父容器，默认跟随 CSS var(--terracotta)
  */

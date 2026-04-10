@@ -20,11 +20,11 @@ export interface Result {
   hasHiddenTitle: boolean;
   /** 所有解锁的隐藏叠加标签 */
   unlockedHiddenTitles: HiddenTitle[];
-  /** 是否触发了骑墙党（≥2 个维度平票） */
-  isLimbo: boolean;
+  /** 是否触发了"我全都要"（≥2 个维度平票） */
+  isAll: boolean;
   /**
-   * LIMBO 下按"符号+默认废方向"硬分出的最接近人格代号。
-   * 非 LIMBO 场景下与 code 相同，方便结果页展示"硬要归类的话最接近 X"。
+   * ALL 下按"符号+默认废方向"硬分出的最接近人格代号。
+   * 非 ALL 场景下与 code 相同，方便结果页展示"硬要归类的话最接近 X"。
    */
   closestCode: string;
   closestPersonality: typeof personalities[string];
@@ -159,7 +159,7 @@ export function getResult(answers: Record<number, number>): Result {
   if (scores.NL === 0) tied.push('NL');
   if (scores.YF === 0) tied.push('YF');
 
-  const isLimbo = tied.length >= 2;
+  const isAll = tied.length >= 2;
 
   // 平票 (== 0) 时默认归入 "废方向"：D / Z / N / Y。
   // 统一写成 "严格比较 ? 另一方向 : 废方向"，else 分支一眼看出默认归属。
@@ -171,11 +171,11 @@ export function getResult(answers: Record<number, number>): Result {
   const closestCode = g + z + n + y;
   const closestPersonality = personalities[closestCode];
 
-  const code = isLimbo ? 'LIMBO' : closestCode;
-  const personality = isLimbo ? personalities.LIMBO : closestPersonality;
+  const code = isAll ? 'ALL' : closestCode;
+  const personality = isAll ? personalities.ALL : closestPersonality;
 
   let displayCode = code;
-  if (!isLimbo && tied.length === 1) {
+  if (!isAll && tied.length === 1) {
     const chars = [...code];
     const tieIndex = { GD: 0, ZR: 1, NL: 2, YF: 3 }[tied[0]];
     chars[tieIndex] = '*';
@@ -224,7 +224,7 @@ export function getResult(answers: Record<number, number>): Result {
     personality,
     hasHiddenTitle,
     unlockedHiddenTitles,
-    isLimbo,
+    isAll,
     closestCode,
     closestPersonality,
     tiedDimensions: tied,

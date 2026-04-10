@@ -30,6 +30,7 @@ import {
 import './global.css'
 
 const GITHUB_REPO_URL = 'https://github.com/Innei/fwti'
+const FWTI_SITE_URL = 'https://fwti.innei.dev'
 
 /**
  * 正题题库数量（排除 META 前置题，但**包含**所有彩蛋题）。
@@ -65,7 +66,7 @@ export function HomePage(props: { onStart: () => void }) {
       <section class="home-hero">
         <div class="home-hero-inner">
           <div class="eyebrow eyebrow-on-green">Fèiwù Type Indicator</div>
-          <h1 class="home-title">恋爱废物人格测试</h1>
+          <h1 class="home-title">自嘲型恋爱人格测试</h1>
           <p class="home-lede">
             三十三道灵魂拷问，四维交叉分析，
             <br />
@@ -92,14 +93,14 @@ export function HomePage(props: { onStart: () => void }) {
 
       <section class="home-preview">
         <div class="preview-head">
-          <div class="preview-eyebrow">16 种废物 · The Waste Gallery</div>
+          <div class="preview-eyebrow">16 种人格 · The Waste Gallery</div>
           <h2 class="preview-title">君之归宿，四族十六型</h2>
           <p class="preview-hint">点击卡片查看类型释义</p>
         </div>
         <div class="preview-grid">
           <For
             each={Object.values(personalities).filter(
-              (p) => p.code !== 'LIMBO',
+              (p) => p.code !== 'ALL',
             )}
           >
             {(p) => {
@@ -355,7 +356,7 @@ export function QuizPage(props: {
 
       <section class="quiz-hero">
         <div class="quiz-hero-inner">
-          <h1 class="quiz-hero-title">恋爱废物人格测试</h1>
+          <h1 class="quiz-hero-title">自嘲型恋爱人格测试</h1>
           <p class="quiz-hero-sub">
             据实作答，勿过虑，题题必选；若场景不适用，请按前置题所选语境代入想象。
           </p>
@@ -481,9 +482,9 @@ export function ResultPage(props: { result: Result; onRestart: () => void }) {
         {/* Hero */}
         <section class="result-hero">
           <div class="hero-eyebrow">
-            {r().isLimbo
-              ? '隐藏人格解锁 · 你的废物类型是'
-              : '测试完成 · 你的废物类型是'}
+            {r().isAll
+              ? '隐藏人格解锁 · 你的恋爱人格是'
+              : '测试完成 · 你的恋爱人格是'}
           </div>
           <div class="result-identity">
             <h1 class="result-name">{p().name}</h1>
@@ -492,12 +493,12 @@ export function ResultPage(props: { result: Result; onRestart: () => void }) {
               <p class="result-slang">{p().cnSlang}</p>
             </Show>
             <ResultCodeLine text={r().displayCode} />
-            <Show when={!r().isLimbo && r().tiedDimensions.length === 1}>
+            <Show when={!r().isAll && r().tiedDimensions.length === 1}>
               <p class="result-tied-note">
                 有一个维度恰好打平，已按默认方向归类并在该维度以 * 标记
               </p>
             </Show>
-            <Show when={r().isLimbo && r().closestPersonality}>
+            <Show when={r().isAll && r().closestPersonality}>
               <p class="result-tied-note">
                 共有 {r().tiedDimensions.length}{' '}
                 个维度打平；若硬要归类，你最接近
@@ -683,7 +684,27 @@ export function ResultPage(props: { result: Result; onRestart: () => void }) {
           <button class="btn btn-accent" onClick={props.onRestart}>
             再测一次 →
           </button>
-          <p class="footer-text">FWTI v1.0 · 恋爱废物人格测试 · 仅供娱乐</p>
+          <p class="footer-text">FWTI v1.0 · 自嘲型恋爱人格测试 · 仅供娱乐</p>
+          <div class="result-site-qr-wrap">
+            <p class="result-site-qr-label">扫码打开测试</p>
+            <a
+              class="result-site-qr"
+              href={FWTI_SITE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`在新标签打开 ${FWTI_SITE_URL}`}
+            >
+              <img
+                src="/fwti-site-qr.png"
+                width={160}
+                height={160}
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+            </a>
+            <span class="result-site-qr-url">fwti.innei.dev</span>
+          </div>
         </div>
 
         {/* References & Disclaimer */}

@@ -1,6 +1,6 @@
-# FWTI 十六型人格画像 — AI 生图 Prompt Kit
+# FWTI 十六型 + 八隐藏人格画像 — AI 生图 Prompt Kit
 
-## 2. 共用 Base Prompt（一贯到底，十六型皆用）
+## 2. 共用 Base Prompt（一贯到底，十六型与隐藏人格皆用）
 
 ```
 A single full-body character illustration in the style of 16personalities.com,
@@ -23,11 +23,13 @@ watermark, distorted hands, extra fingers, low resolution
 
 ## 4. 技术参数
 
-| 平台             | 建议参数                                                     |
-| ---------------- | ------------------------------------------------------------ |
-| Midjourney v6.1+ | `--ar 1:1 --style raw --stylize 250 --v 6.1`                 |
+
+| 平台               | 建议参数                                                                            |
+| ---------------- | ------------------------------------------------------------------------------- |
+| Midjourney v6.1+ | `--ar 1:1 --style raw --stylize 250 --v 6.1`                                    |
 | DALL·E 3         | aspect `1:1`, 尺寸 `1024×1024`，前加 `Create a stylized flat vector illustration...` |
-| SDXL             | steps 35, CFG 6, sampler DPM++ 2M Karras；若有 16p-style LoRA 更佳 |
+| SDXL             | steps 35, CFG 6, sampler DPM++ 2M Karras；若有 16p-style LoRA 更佳                   |
+
 
 ### 一致性关键（极重要）
 
@@ -48,13 +50,16 @@ watermark, distorted hands, extra fingers, low resolution
 
 ### 家族底色线索（Family color cue）
 
-| Family    | 家族名          | cue 字段（接 base prompt 尾）                                         |
-| --------- | --------------- | --------------------------------------------------------------------- |
-| **GZ**    | 激进家（冲·炸） | `, background tinted soft violet #88619a`                             |
-| **GR**    | 隐忍家（冲·忍） | `, background tinted warm mustard #e4ae3a`                            |
-| **DZ**    | 内爆家（蹲·炸） | `, background tinted dusty blue #4298b4`                              |
-| **DR**    | 隐身家（蹲·忍） | `, background tinted sage green #33a474`                              |
-| **LIMBO** | 骑墙家（隐藏）  | `, background tinted split neutral slate #6b7280` — 用左右对称分割构图 |
+
+| Family      | 家族名       | cue 字段（接 base prompt 尾）                                                                                                            |
+| ----------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **GZ**      | 激进家（冲·炸）  | `, background tinted soft violet #88619a`                                                                                          |
+| **GR**      | 隐忍家（冲·忍）  | `, background tinted warm mustard #e4ae3a`                                                                                         |
+| **DZ**      | 内爆家（蹲·炸）  | `, background tinted dusty blue #4298b4`                                                                                           |
+| **DR**      | 隐身家（蹲·忍）  | `, background tinted sage green #33a474`                                                                                           |
+| **ALL**     | 隐藏家（我全都要） | `, background radiating four faint color wedges (violet, mustard, dusty blue, sage green) from a hollow slate grey center #6b7280` |
+| **HIDDEN+** | 隐藏彩蛋家（七人） | 每位独立配色，见 §5 各条目（RAT / PURE / MAD / E-DOG / CHAOS / CPU / BENCH）                                                                    |
+
 
 ---
 
@@ -255,188 +260,147 @@ gaze drifting past the camera, hands-in-pocket energy
 
 ---
 
-### ⚖️ Hidden · 骑墙家
+### ⚖️ Hidden · 隐藏人格
 
-#### LIMBO — 骑墙党 · LIMBO
+#### ALL — 我全都要 · ALL
 
-> 每个维度都恰好一半，测完反而更迷茫
+> 小孩子才做选择，而我全都要——然后一个也没得到
 
 ```
-An indecisive ambiguous person in neutral grey-toned clothing (half cool, half warm),
-standing balanced on top of a narrow wall or fence that runs directly through the
-center of the composition, holding their arms out for balance, head turned halfway
-between two directions as if unable to commit, expression pleasantly uncertain with
-a slight shrug, four small floating question marks orbiting around their head in a
-perfect symmetric pattern, background split subtly into two mirrored halves
+A wide-grinning greedy young person comically overloaded with every possible
+romance archetype at once, arms stretched wide trying to cradle a chaotic
+pile of mismatched props — a tiny megaphone, a chess piece, a lit sparkler,
+a cactus, a bouquet, a leash, a rose, a phone — all slipping through their
+fingers and tumbling to the floor, a crooked golden paper crown reading
+"ALL" perched on messy hair, sparkling eyes full of insatiable want, empty
+hands at the center of the composition despite the overflowing pile
 ```
 
-> Family color cue 替换为：`, background tinted split neutral slate #6b7280 with a soft dividing line through the middle`
+> Family color cue 替换为：`, background radiating four faint color wedges (violet, mustard, dusty blue, sage green) from a hollow slate grey center #6b7280`
 
 ---
 
-## 6. 隐藏叠加标签贴纸 Prompts（Sticker）
+### 🎭 Hidden+ · 隐藏彩蛋人格
 
-隐藏叠加标签（「撤回大师」「夜谈冠军」「朋友圈考古学家」「薛定谔的前任」「电子乙方」「空想家」「人形 ATM」）不是独立人格，**不生成完整四字母人格全身卡**；它们在结果页作为小徽章 / 贴纸出现，和主卡并列。因此 sticker 版 prompt 用的是**半身或道具聚焦**构图，风格仍沿用同一张 16personalities.com 风格参考图，只替换 subject 段和构图提示。
+> 此七型触发条件详见 `DRAFT.md` 第五节「隐藏人格判定顺序」。每型有独立背景配色，直接替换 base prompt 尾的 family color cue 使用。
 
-一共 **7 张贴纸**，和 `src/data/personalities.ts → hiddenTitles` 里的七条一一对应。
+#### RAT — 鼠鼠恋人 · RAT
 
-### Sticker Base Prompt（贴纸专用 base，替换 §2）
-
-```
-A small editorial character sticker in the style of 16personalities.com,
-flat vector art with faceted polygon shading, soft highlights and muted shadows,
-desaturated editorial palette, bust-up or prop-centered composition on a 1:1 square canvas,
-soft radial gradient background, clean geometric shading without harsh outlines,
-subtle die-cut sticker border, prop and expression carrying the full joke,
-editorial character sticker art
-```
-
-> Sticker 不用家族底色，统一走浅灰背景 `, background tinted neutral #f3f4f6`，以便叠在任意主卡旁边时不打架。
-
----
-
-### 6.1 — 撤回大师 · retractMaster
-
-> 触发条件：Q31 选 A（发出去又撤回又重写又撤回，最后决定不发了）
->
-> 画面思路：聚焦"撤回"这个动作本身——手指悬在屏幕上方，聊天气泡从对话框中被一只小手拽回来，外加一堆废弃草稿漂浮。
+> 鼠鼠我啊，连点赞都不敢按下去
 
 ```
-A sleepless young person hunched over a glowing smartphone in a dim blue-lit room,
-thumb hovering and trembling above a red "撤回 / Unsend" button, a tiny chat bubble
-being physically yanked back into the phone screen by a small cartoon hand emerging
-from the display, several crumpled draft message bubbles floating and fading around
-the head like discarded thoughts, dark circles under the eyes, slightly bitten lower
-lip, one eyebrow furrowed in second-guessing
+A small hunched figure in an oversized drab grey hoodie pulled low, a knit
+beanie casting a faint rat-ear shadow, crouched close to the ground near a
+metal drain grate, hands shielding a phone with an unsent message draft, a
+tiny cartoon rat plushie peeking out of the hoodie pocket, downcast self-
+pitying eyes, sunken shoulders, dim alley lighting
 ```
 
-> 文件名建议：`sticker-retract-master.webp`，存放于 `src/assets/portraits/`（与主卡同目录）
+> Family color cue 替换为：`, background tinted damp concrete grey #4a4a4a with faint drain pipe silhouettes`
 
----
+#### PURE — 纯爱战士 · PURE
 
-### 6.2 — 夜谈冠军 · nightTalkChamp
-
-> 触发条件：Q12 / Q13 / Q29 中至少两题选 A（极端 Z 或 Y）
->
-> 画面思路：凌晨 3 点的独角戏——床头灯下抱着手机给 TA 写长信小作文，屏幕上字数计数器爆表。
+> 只要真爱还在，废就废得值得
 
 ```
-A wide-awake young person sitting cross-legged on rumpled bedsheets in pajamas at
-3 AM, clutching a phone that displays an absurdly long unsent message draft with a
-"2847 字" character counter glowing red, a small bedside lamp throwing warm light on
-their intense focused face, tear tracks on cheeks, empty tissue box tipped over, a
-little cartoon trophy engraved "夜谈冠军" tucked behind the pillow, a digital clock
-in the background reading 03:17
+A resolute young person in a modern white knight-inspired long coat with
+silver trim, kneeling on one knee while holding aloft a glowing paper heart
+like a sacred lantern, eyes wet with idealistic conviction, chin lifted
+toward an unseen light source, a single red rose pinned to their chest, a
+faint golden halo arcing behind the head, soft rose petals drifting upward
 ```
 
-> 文件名建议：`sticker-night-talk-champ.webp`，存放于 `src/assets/portraits/`
+> Family color cue 替换为：`, background tinted warm ivory #f5ebd0 with a soft golden halo glow`
 
----
+#### MAD — 发疯文学家 · MAD
 
-### 6.3 — 朋友圈考古学家 · momentsArchaeologist
-
-> 触发条件：Q26 + Q27 都选 A
->
-> 画面思路：戴考古放大镜、手里握着"朋友圈"时间轴刷到三年前，桌上铺满"证据"截图。
+> 我真的要疯了，不是比喻
 
 ```
-A detective-like young person in a beige trench coat and round magnifying glasses,
-holding up a large magnifying glass to a phone screen showing a social feed scrolled
-"三年前" deep in the timeline, their other hand pinning down printed screenshots on
-a corkboard connected by red string, a tiny archaeology brush tucked behind one ear,
-eyes narrowed in obsessive concentration, a dust cloud rising from the phone as if
-from an excavation site
+A dishevelled person with wild frizzy hair and visible eye-bags, wearing a
+crumpled oversized shirt covered in scribbled text fragments, one hand
+aggressively thumb-typing on a phone held mid-air, the other gripping a
+coffee cup overflowing dramatically, mouth open mid-rant, one eye twitching,
+a snowstorm of loose manuscript pages circling them, a faint electric spark
+aura crackling around the shoulders
 ```
 
-> 文件名建议：`sticker-moments-archaeologist.webp`，存放于 `src/assets/portraits/`
+> Family color cue 替换为：`, background tinted fevered crimson #c73e3e with torn paper scraps swirling`
 
----
+#### E-DOG — 赛博舔狗 · E-DOG
 
-### 6.4 — 薛定谔的前任 · schrodingerEx
-
-> 触发条件：status === crush && Q14 A && Q28 A
->
-> 画面思路：标签名直接走量子态双关——人物被"在 / 不在"两种半透明状态同时占据，前任剪影若隐若现。
+> 现实里不认识你，线上我是你亲爹
 
 ```
-A wistful young person standing in half-turned profile, their silhouette split into
-two overlapping translucent versions of themselves — one reaching forward, the other
-already walking away — a faint ghost-like outline of another person hovering just
-behind their shoulder like an unreleased memory, holding a single dried rose loosely
-in one hand, eyes half-closed in bittersweet remembrance, small Schrödinger-style
-box icon floating nearby with a question mark inside
+A hunched person sitting cross-legged on a dim bedroom floor, face dully
+lit only by phone glow, wearing a cyberpunk hoodie with glowing LED trim,
+cartoon dog-ear outlines hovering above the head like a projected AR filter,
+a holographic tongue-out dog emoji floating beside their cheek, the phone
+showing chat bubbles stuffed with dog emojis, their real expression flat
+and exhausted while the screen reflection beams with affection
 ```
 
-> 文件名建议：`sticker-schrodinger-ex.webp`，存放于 `src/assets/portraits/`
+> Family color cue 替换为：`, background split: deep midnight navy #1e2344 on the left, soft pink screen glow #e8a5c8 on the right`
 
----
+#### CHAOS — 已读乱回 · CHAOS
 
-### 6.5 — 电子乙方 · electronicVendor
-
-> 触发条件：Q2 = C && Q3 = A && Q5 = A
->
-> 画面思路：把关系做成甲乙方合同——用户挂着"乙方"工牌，端茶倒水递合同，腰弓得像电商客服。
+> 已读。然后我回了一堆颠话
 
 ```
-A diligent young person in a neat polo shirt with a lanyard badge that reads "乙方 /
-Vendor", bent slightly forward in a customer-service bow, one hand offering a steaming
-cup of coffee and the other holding out a clipboard labeled "甲方需求确认单", a small
-ID card clipped to the chest reading "24h 随叫随到", polite professional smile that
-doesn't quite reach the eyes, a tiny KPI chart floating behind them showing 100 percent
-completion
+A dazed person with tousled hair in a soft sweater worn backward, clutching
+a phone showing nonsense emoji-spam chat bubbles, one eye drooping while
+the other is wide open, a bewildered half-smile, random floating objects
+drifting around them — a lone banana, a broken umbrella, a single sock —
+a large "??" thought bubble above the head, slight glitch artifacts
+rippling through the air, feet subtly misaligned
 ```
 
-> 文件名建议：`sticker-electronic-vendor.webp`，存放于 `src/assets/portraits/`
+> Family color cue 替换为：`, background tinted glitchy lavender #b7a4d1 with soft static noise artifacts`
 
----
+#### CPU — CPU 恋人 · CPU
 
-### 6.6 — 空想家 · daydreamer
-
-> 触发条件：status === solo && 极端主线题 ≥ 12
->
-> 画面思路：纯单身但脑子里已经演完 100 场恋爱——头顶一团粉色云朵，里面同时上演着好几幕不同的恋爱场景。
+> 你一句话能让我 CPU 三天三夜
 
 ```
-A dreamy solo young person lying on their back on a grassy patch, hands folded behind
-the head, eyes open and staring up at a fluffy pink cloud above them, the cloud
-containing several tiny vignette panels of imaginary romance scenes (a hand-holding
-moment, a shared umbrella, a candlelit dinner, a wedding silhouette), a single wilted
-rose resting on their chest, peaceful but slightly resigned half-smile, small floating
-heart particles drifting upward into the daydream cloud
+A wide-eyed person with faint smoke trails rising from both ears, a
+transparent forehead revealing a glowing red-hot CPU chip with pulsing
+circuit traces, both hands gripping their hair in mental overload, a
+dropped phone in front of them showing a single unread message, a swirling
+whirlwind of tiny text fragments like "did they mean" and "or maybe"
+orbiting their head, pupils shaped like loading spinners
 ```
 
-> 文件名建议：`sticker-daydreamer.webp`，存放于 `src/assets/portraits/`
+> Family color cue 替换为：`, background tinted overheated amber #e07a2b with faint circuit trace patterns`
 
----
+#### BENCH — 备胎之王 · BENCH
 
-### 6.7 — 人形 ATM · humanATM
-
-> 触发条件：Q33 选 A（钱基本都我出） **或** Q34 选 A（凌晨情绪客服秒回）——任一即解锁
->
-> 画面思路：把"人 + 提款机"做成拟人物——胸口嵌着一台银行 ATM 的出钞口与屏幕，一只手递钱、另一只手端咖啡兼做情绪客服，一次性覆盖"经济 ATM + 情绪 ATM"两层含义。
+> 在鱼塘边上坐成雕像
 
 ```
-A well-meaning young person in a clean button-up shirt and knit vest, their torso
-seamlessly merging into a small silver bank ATM unit at chest level with a glowing
-green screen that reads "Welcome TA" and a cash slot dispensing a single crisp bill,
-one hand offering the bill outward in a willing "please take it" gesture and the
-other hand holding a steaming mug of coffee as if also on emotional-support duty, a
-faint operator-style headset resting around the neck, tired but earnest half-smile,
-small receipts trailing from the slot onto the floor
+A well-dressed but slightly wilted person sitting patiently on a plain
+wooden bench, cardigan over a neat shirt, a faded paper name tag pinned
+to their chest reading "SPARE", holding a phone with a long scrolling
+"在吗" message thread unanswered, a polite patient smile tinged with
+resignation, dust motes suggesting long stillness, a tiny cobweb beginning
+to form between their shoulder and the bench, hands folded quietly on
+their knees
 ```
 
-> 文件名建议：`sticker-human-atm.webp`，存放于 `src/assets/portraits/`
+> Family color cue 替换为：`, background tinted dusty beige #cbb89a with a faint wooden bench silhouette`
 
 ---
 
 ### Sticker 技术参数微调
 
-| 平台             | 微调建议                                                     |
-| ---------------- | ------------------------------------------------------------ |
-| Midjourney v6.1+ | 在主卡参数基础上追加 `--ar 1:1 --stylize 200`，`--sref` 沿用同一张 16p 参考图 |
-| DALL·E 3         | 提示词开头加 "A small sticker-sized editorial character illustration..." |
+
+| 平台               | 微调建议                                                                         |
+| ---------------- | ---------------------------------------------------------------------------- |
+| Midjourney v6.1+ | 在主卡参数基础上追加 `--ar 1:1 --stylize 200`，`--sref` 沿用同一张 16p 参考图                   |
+| DALL·E 3         | 提示词开头加 "A small sticker-sized editorial character illustration..."           |
 | SDXL             | 构图提示 `"centered bust up, subtle die-cut sticker border, neutral background"` |
 
-> **命名建议**：资源文件统一放在 `src/assets/portraits/`，和四字母主卡（`GZNY.webp` / `LIMBO.webp` 等大写代号命名）同目录。贴纸文件名统一用 `sticker-<kebab-case>.webp` 前缀区分，既不需要新开目录也不会和主卡混淆。注意本项目历史上还存在一个 `src/assets/16p/` 目录，那是 MBTI 的 SVG 遗留物，**与 FWTI 贴纸无关，不要往里放任何东西**。
+
+> **命名建议**：资源文件统一放在 `src/assets/portraits/`，和四字母主卡（`GZNY.webp` / `ALL.webp` 等大写代号命名）同目录。贴纸文件名统一用 `sticker-<kebab-case>.webp` 前缀区分，既不需要新开目录也不会和主卡混淆。注意本项目历史上还存在一个 `src/assets/16p/` 目录，那是 MBTI 的 SVG 遗留物，**与 FWTI 贴纸无关，不要往里放任何东西**。
 
 ---
+

@@ -17,7 +17,7 @@ export function Head() {
     JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'WebSite',
-      name: 'FWTI 恋爱废物人格测试',
+      name: 'FWTI 自嘲型恋爱人格测试',
       description: JSON_LD_DESCRIPTION,
       inLanguage: 'zh-CN',
       url: `${site}/`,
@@ -37,7 +37,7 @@ export function Head() {
       <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#09090b" />
       <meta
         name="keywords"
-        content="FWTI,恋爱测试,性格测试,趣味测试,恋爱废物人格,娱乐测试"
+        content="FWTI,恋爱测试,性格测试,趣味测试,自嘲型恋爱人格,娱乐测试"
       />
       <meta name="robots" content="index,follow" />
       <meta name="author" content="Innei" />

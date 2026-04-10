@@ -173,7 +173,7 @@ export const personalities: Record<string, Personality> = {
     color: '#4CAF50',
     wasteLevel: 1,
     description:
-      '恭喜你，你是整个废物图鉴里最不像废物的存在。你在恋爱中主动但不过火，有情绪但选择理性处理，享受亲密也尊重独立，对这段关系有安全感但不盲目。简直是恋爱教科书级别的选手。唯一的问题是：你来做恋爱废物测试干嘛？是来审判别人的吗？',
+      '恭喜你，你是整个废物图鉴里最不像废物的存在。你在恋爱中主动但不过火，有情绪但选择理性处理，享受亲密也尊重独立，对这段关系有安全感但不盲目。简直是恋爱教科书级别的选手。唯一的问题是：你来做自嘲型恋爱人格测试干嘛？是来审判别人的吗？',
     traits: [
       '喜欢就说，不喜欢也说，不内耗',
       '恋爱之外有完整的自我和社交',
@@ -356,12 +356,12 @@ export const personalities: Record<string, Personality> = {
   },
 
   // ===== 隐藏人格 =====
-  LIMBO: {
-    code: 'LIMBO',
-    name: '骑墙党',
-    engName: 'LIMBO',
-    cnSlang: '薛定谔 / 端水大师',
-    tagline: '每个维度都恰好一半，测完反而更迷茫',
+  ALL: {
+    code: 'ALL',
+    name: '我全都要',
+    engName: 'ALL',
+    cnSlang: '薛定谔 / 端水大师 / 金馆长',
+    tagline: '小孩子才做选择，而我全都要——然后一个也没得到',
     emoji: '⚖️',
     color: '#6B7280',
     wasteLevel: 3,
