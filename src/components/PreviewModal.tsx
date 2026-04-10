@@ -86,7 +86,11 @@ export function PreviewModal() {
                 <span class="preview-modal-waste-num">{person.wasteLevel}/5</span>
               </div>
 
-              <p class="preview-modal-desc">{person.description}</p>
+              <div class="preview-modal-desc">
+                <For each={person.description.split('\n\n')}>
+                  {(para) => <p>{para}</p>}
+                </For>
+              </div>
 
               <div class="preview-modal-section">
                 <div class="preview-modal-section-title">常见病状</div>

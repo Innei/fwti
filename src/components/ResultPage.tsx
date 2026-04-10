@@ -186,7 +186,11 @@ export function ResultPage(props: {
         <section class="result-section">
           <div class="section-eyebrow">人格解读 · Profile</div>
           <h2 class="section-title">这就是你</h2>
-          <p class="result-desc">{p().description}</p>
+          <div class="result-desc">
+            <For each={p().description.split('\n\n')}>
+              {(para) => <p>{para}</p>}
+            </For>
+          </div>
         </section>
 
         {/* Traits */}
