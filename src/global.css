@@ -1467,6 +1467,17 @@ body {
   border-radius: 999px;
   transition: width 0.8s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
+/*  bipolar：分数落在 labelA 一侧时从左向右填；落在 labelB 一侧时从右向左填 */
+.dim-bar-fill--pole-a {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.dim-bar-fill--pole-b {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
 
 /* Description */
 .result-desc {

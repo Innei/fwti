@@ -555,10 +555,22 @@ export function ResultPage(props: { result: Result; onRestart: () => void }) {
                   <div class="dim-bar-container">
                     <span class="dim-bar-side left">{d.labelA}</span>
                     <div class="dim-bar-track">
-                      <div
-                        class="dim-bar-fill"
-                        style={{ width: `${Math.min(d.valueA, 100)}%` }}
-                      />
+                      <Show when={d.valueA > 0}>
+                        <div
+                          class="dim-bar-fill dim-bar-fill--pole-a"
+                          style={{
+                            width: `${Math.min(d.valueA, 100)}%`,
+                          }}
+                        />
+                      </Show>
+                      <Show when={d.valueB > 0}>
+                        <div
+                          class="dim-bar-fill dim-bar-fill--pole-b"
+                          style={{
+                            width: `${Math.min(d.valueB, 100)}%`,
+                          }}
+                        />
+                      </Show>
                     </div>
                     <span class="dim-bar-side right">{d.labelB}</span>
                   </div>
