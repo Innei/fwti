@@ -1,4 +1,4 @@
-# FWTI 十六型 + 八隐藏人格画像 — AI 生图 Prompt Kit
+# FWTI 十六型 + 十一隐藏人格画像 — AI 生图 Prompt Kit
 
 ## 2. 共用 Base Prompt（一贯到底，十六型与隐藏人格皆用）
 
@@ -41,7 +41,7 @@ watermark, distorted hands, extra fingers, low resolution
 | **DZ**      | 内爆家（蹲·炸）  | `, background tinted dusty blue #4298b4`                                                                                           |
 | **DR**      | 隐身家（蹲·忍）  | `, background tinted sage green #33a474`                                                                                           |
 | **ALL**     | 隐藏家（我全都要） | `, background radiating four faint color wedges (violet, mustard, dusty blue, sage green) from a hollow slate grey center #6b7280` |
-| **HIDDEN+** | 隐藏彩蛋家（七人） | 每位独立配色，见 §5 各条目（RAT / PURE / MAD / E-DOG / CHAOS / CPU / BENCH）                                                                    |
+| **HIDDEN+** | 隐藏彩蛋家（八人） | 每位独立配色，见 §5 各条目（RAT / PURE / MAD / E-DOG / CHAOS / CPU / BENCH / JOKER）                                                                    |
 
 
 ---
@@ -265,7 +265,7 @@ hands at the center of the composition despite the overflowing pile
 
 ### 🎭 Hidden+ · 隐藏彩蛋人格
 
-> 此七型触发条件详见 `DRAFT.md` 第五节「隐藏人格判定顺序」。每型有独立背景配色，直接替换 base prompt 尾的 family color cue 使用。
+> 此八型触发条件详见 `DRAFT.md` 第五节「隐藏人格判定顺序」。每型有独立背景配色，直接替换 base prompt 尾的 family color cue 使用。
 
 #### RAT — 鼠鼠恋人 · RAT
 
@@ -370,6 +370,26 @@ their knees
 ```
 
 > Family color cue 替换为：`, background tinted dusty beige #cbb89a with a faint wooden bench silhouette`
+
+#### JOKER — 小丑 · JOKER（v0.4 新增 · 全状态可触发）
+
+> 笑着说不在意的人，心里早就塌了
+
+```
+A theatrical young person in a stylish purple tailcoat with one lapel pinned
+with a tiny comedy mask and the other with a tragedy mask, mid-bow with one
+arm swept behind their back like a stage performer taking a curtain call, a
+wide dazzling grin that doesn't quite reach their eyes — one eye glinting with
+performer's sparkle while the other has a single frozen tear track, holding a
+fan of playing cards in one hand with the joker card face-up and slightly
+larger than the rest, the other hand holding a phone with a "哈哈哈" message
+they just sent while their reflection in the phone screen shows a completely
+different expression — mouth downturned, eyes hollow, a faint tear on the
+cheek, confetti scraps drifting around their feet like the aftermath of a party
+only they attended
+```
+
+> Family color cue 替换为：`, background tinted theatrical purple #9b59b6 with faint confetti scraps and a soft spotlight cone from above`
 
 #### VOID — 电子断联户 · VOID（v0.4 新增 · 仅 solo 可解）
 
