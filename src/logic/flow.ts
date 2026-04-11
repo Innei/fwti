@@ -13,7 +13,7 @@
  *   4. 父题答案变更会自动改变 follow-up 插入——旧 follow-up 直接从路径中消失，
  *      对应的 `answers[childId]` 留在 map 中但不再参与路径与评分（惰性清理）。
  *   5. 递归深度硬上限 2：follow-up 的 follow-up 允许，但它们不能再有 follow-up。
- *      该约束由 `src/data/questions.ts` 的 invariant 层强制，本函数只管执行。
+ *      该约束由 `src/copy/questions.ts` 的 invariant 层强制，本函数只管执行。
  */
 
 import {
@@ -23,7 +23,7 @@ import {
   followups,
   type Question,
   type StatusKey,
-} from '../data/questions';
+} from '../copy/questions';
 import type { RelationshipStatus } from './scoring';
 
 const MAX_FOLLOWUP_DEPTH = 2;

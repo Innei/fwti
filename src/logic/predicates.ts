@@ -14,7 +14,7 @@ import {
   questionIndex,
   type Question,
   type QuestionDimension,
-} from '../data/questions';
+} from '../copy/questions';
 import { SEMANTIC, type SemanticAnchor } from './semanticIds';
 
 export type RatioDim = 'GD' | 'ZR' | 'NL' | 'YF';

@@ -1,5 +1,6 @@
 import { createSignal } from 'solid-js';
-import type { Personality } from './data/personalities';
+import type { Personality } from './copy/personalities';
+import { homePageCopy } from './copy/ui';
 
 export const GITHUB_REPO_URL = 'https://github.com/Innei/fwti';
 export const FWTI_SITE_URL = 'https://fwti.innei.dev';
@@ -15,7 +16,7 @@ export const FWTI_SITE_URL = 'https://fwti.innei.dev';
  *   - crush      31..39  (base 31 + follow-up 0..8)
  *   - solo       31..39  (base 31 + follow-up 0..8)
  */
-export const QUIZ_RANGE_TEXT = '约 30 至 39 题';
+export const QUIZ_RANGE_TEXT = homePageCopy.quizRangeText;
 
 /** 当前作答状态。key=题 id，value=选项索引。 */
 export const [answers, setAnswers] = createSignal<Record<number, number>>({});

@@ -1,5 +1,7 @@
 import { createSignal, For, Show } from 'solid-js';
-import { personalities } from '../data/personalities';
+import { ArrowRight, Check } from 'lucide-solid';
+import { personalities } from '../copy/personalities';
+import { resultPageCopy } from '../copy/ui';
 import type { Result } from '../logic/scoring';
 import { getFamilyTheme, getFamily } from '../logic/family';
 import { getCompatibilityOutcome } from '../logic/compatibility';
@@ -14,15 +16,15 @@ const EXPLAIN_SKILL_README_ANCHOR = `${GITHUB_REPO_URL}#explain-result-skill`;
 function evidenceFacetLabel(facet: string): string {
   switch (facet) {
     case 'initiative':
-      return '主动推进';
+      return resultPageCopy.evidenceFacetLabels.initiative;
     case 'expression':
-      return '情绪表达';
+      return resultPageCopy.evidenceFacetLabels.expression;
     case 'closeness':
-      return '亲密节奏';
+      return resultPageCopy.evidenceFacetLabels.closeness;
     case 'security':
-      return '安全感';
+      return resultPageCopy.evidenceFacetLabels.security;
     default:
-      return '作答证据';
+      return resultPageCopy.evidenceFacetLabels.default;
   }
 }
 
@@ -108,16 +110,19 @@ export function ResultPage(props: {
       <Show when={props.isLegacy}>
         <div class="legacy-banner" role="status">
           <div class="legacy-banner-inner">
-            <span class="legacy-banner-badge">旧版测试结果</span>
+            <span class="legacy-banner-badge">{resultPageCopy.legacyBanner.badge}</span>
             <span class="legacy-banner-text">
-              此链接来自旧版题库，按当时规则解读。新版已引入分支题库与归一化评分，结果可能不同。
+              {resultPageCopy.legacyBanner.text}
             </span>
             <button
               type="button"
               class="legacy-banner-cta"
               onClick={props.onRestart}
             >
-              点此重测新版 →
+              <span>{resultPageCopy.legacyBanner.cta}</span>
+              <span class="btn-arrow" aria-hidden="true">
+                <ArrowRight size={16} />
+              </span>
             </button>
           </div>
         </div>
@@ -127,9 +132,7 @@ export function ResultPage(props: {
         {/* Hero */}
         <section class="result-hero">
           <div class="hero-eyebrow">
-            {r().isHidden
-              ? '隐藏人格解锁 · 你的恋爱人格是'
-              : '测试完成 · 你的恋爱人格是'}
+            {resultPageCopy.heroEyebrow(r().isHidden)}
           </div>
           <div class="result-identity">
             <h1 class="result-name">{p().name}</h1>
@@ -140,7 +143,7 @@ export function ResultPage(props: {
             <ResultCodeLine text={r().displayCode} />
             <Show when={r().isAll && r().closestPersonality}>
               <p class="result-tied-note">
-                共有 {r().tiedDimensions.length} 个维度打平；若硬要归类，你最接近
+                {resultPageCopy.tiedNote(r().tiedDimensions.length)}
                 <span class="result-tied-closest">
                   {' '}
                   {r().closestCode} · {r().closestPersonality.name}
@@ -151,7 +154,7 @@ export function ResultPage(props: {
           <Portrait code={p().code} size={320} class="result-hero-portrait" />
           <p class="result-tagline">「{p().tagline}」</p>
           <div class="waste-meter">
-            <span class="waste-meter-label">废物指数</span>
+            <span class="waste-meter-label">{resultPageCopy.wasteLabel}</span>
             <div class="waste-meter-bar">
               <For each={Array.from({ length: 5 })}>
                 {(_, i) => (
@@ -168,15 +171,15 @@ export function ResultPage(props: {
         {/* Hidden titles */}
         <Show when={r().unlockedHiddenTitles.length > 0}>
           <section class="hidden-title-section">
-            <div class="section-eyebrow">隐藏成就 · Achievements</div>
+            <div class="section-eyebrow">{resultPageCopy.hiddenAchievementsEyebrow}</div>
             <h2 class="section-title">
-              你额外解锁了 {r().unlockedHiddenTitles.length} 个隐藏标签
+              {resultPageCopy.hiddenAchievementsTitle(r().unlockedHiddenTitles.length)}
             </h2>
             <div class="hidden-title-list">
               <For each={r().unlockedHiddenTitles}>
                 {(t) => (
                   <div class="hidden-title-card">
-                    <span class="hidden-badge">隐藏</span>
+                    <span class="hidden-badge">{resultPageCopy.hiddenBadge}</span>
                     <p class="hidden-name">「{t.name}」</p>
                     <p class="hidden-desc">{t.description}</p>
                   </div>
@@ -188,8 +191,8 @@ export function ResultPage(props: {
 
         {/* Dimensions */}
         <section class="result-section">
-          <div class="section-eyebrow">维度分析 · Dimensions</div>
-          <h2 class="section-title">四维坐标</h2>
+          <div class="section-eyebrow">{resultPageCopy.dimensionsEyebrow}</div>
+          <h2 class="section-title">{resultPageCopy.dimensionsTitle}</h2>
           <div class="dim-list">
             <For each={r().dimensionLabels}>
               {(d) => (
@@ -221,20 +224,20 @@ export function ResultPage(props: {
           </div>
         </section>
 
-        {/* Description */}
+        {/* Dynamic profile */}
         <section class="result-section">
-          <div class="section-eyebrow">人格解读 · Profile</div>
-          <h2 class="section-title">这就是你</h2>
+          <div class="section-eyebrow">{resultPageCopy.profileEyebrow}</div>
+          <h2 class="section-title">{resultPageCopy.profileTitle}</h2>
           <div class="result-desc">
-            <For each={p().description.split('\n\n')}>
+            <For each={r().narrative.profileParagraphs}>
               {(para) => <p>{para}</p>}
             </For>
           </div>
         </section>
 
         <section class="result-section">
-          <div class="section-eyebrow">作答证据 · Evidence</div>
-          <h2 class="section-title">这次是怎么判到这里的</h2>
+          <div class="section-eyebrow">{resultPageCopy.evidenceEyebrow}</div>
+          <h2 class="section-title">{resultPageCopy.evidenceTitle}</h2>
           <p class="result-evidence-summary">{r().narrative.summary}</p>
           <ul class="trait-list evidence-trait-list">
             <For each={r().narrative.evidenceTraits}>
@@ -252,23 +255,43 @@ export function ResultPage(props: {
 
         <Show when={r().narrative.evidenceCards.length > 0}>
           <section class="result-section">
-            <div class="section-eyebrow">关键题目 · Signals</div>
-            <h2 class="section-title">你亲手交出的证据</h2>
-            <div class="evidence-card-grid">
+            <div class="section-eyebrow">{resultPageCopy.signalsEyebrow}</div>
+            <h2 class="section-title">{resultPageCopy.signalsTitle}</h2>
+            <div class="evidence-signal-list">
               <For each={r().narrative.evidenceCards}>
-                {(card) => (
-                  <article class="evidence-card">
-                    <div class="evidence-card-head">
-                      <span class="evidence-card-badge">
+                {(card, i) => (
+                  <article class="evidence-signal">
+                    <div class="evidence-signal-rail">
+                      <span class="evidence-signal-step">
+                        {String(i() + 1).padStart(2, '0')}
+                      </span>
+                      <span class="evidence-signal-qid">Q{card.questionId}</span>
+                      <span class="evidence-signal-facet">
                         {evidenceFacetLabel(card.facet)}
                       </span>
-                      <span class="evidence-card-qid">Q{card.questionId}</span>
                     </div>
-                    <p class="evidence-card-question">{card.question}</p>
-                    <blockquote class="evidence-card-answer">
-                      {card.answer}
-                    </blockquote>
-                    <p class="evidence-card-note">{card.note}</p>
+                    <div class="evidence-signal-body">
+                      <div class="evidence-signal-row">
+                        <span class="evidence-signal-label">
+                          {resultPageCopy.signalQuestionLabel}
+                        </span>
+                        <p class="evidence-signal-question">{card.question}</p>
+                      </div>
+                      <div class="evidence-signal-row evidence-signal-row--answer">
+                        <span class="evidence-signal-label">
+                          {resultPageCopy.signalAnswerLabel}
+                        </span>
+                        <blockquote class="evidence-signal-answer">
+                          {card.answer}
+                        </blockquote>
+                      </div>
+                      <div class="evidence-signal-row evidence-signal-row--note">
+                        <span class="evidence-signal-label">
+                          {resultPageCopy.signalNoteLabel}
+                        </span>
+                        <p class="evidence-signal-note">{card.note}</p>
+                      </div>
+                    </div>
                   </article>
                 )}
               </For>
@@ -276,39 +299,10 @@ export function ResultPage(props: {
           </section>
         </Show>
 
-        {/* Traits */}
-        <section class="result-section">
-          <div class="section-eyebrow">人格原型 · Archetype</div>
-          <h2 class="section-title">该人格常见表现</h2>
-          <ul class="trait-list">
-            <For each={r().narrative.archetypeTraits}>
-              {(t, i) => (
-                <li class="trait-item">
-                  <span class="trait-num">
-                    {String(i() + 1).padStart(2, '0')}
-                  </span>
-                  <span class="trait-text">{t}</span>
-                </li>
-              )}
-            </For>
-          </ul>
-        </section>
-
-        {/* Catchphrases */}
-        <section class="result-section">
-          <div class="section-eyebrow">语录 · Catchphrases</div>
-          <h2 class="section-title">口头禅</h2>
-          <div class="catchphrases">
-            <For each={p().catchphrases}>
-              {(c) => <blockquote class="catchphrase">{c}</blockquote>}
-            </For>
-          </div>
-        </section>
-
         {/* Matches */}
         <section class="result-section">
-          <div class="section-eyebrow">配对 · Compatibility</div>
-          <h2 class="section-title">缘分图谱</h2>
+          <div class="section-eyebrow">{resultPageCopy.compatibilityEyebrow}</div>
+          <h2 class="section-title">{resultPageCopy.compatibilityTitle}</h2>
           <div class="match-grid">
             <button
               type="button"
@@ -316,16 +310,18 @@ export function ResultPage(props: {
               onClick={() =>
                 setPreviewDetail(personalities[matches().best.code] ?? null)
               }
-              aria-label={`查看 ${personalities[matches().best.code]?.name} 详情`}
+              aria-label={resultPageCopy.matchDetailAria(
+                personalities[matches().best.code]?.name ?? matches().best.code,
+              )}
             >
               <div class="match-card-top">
                 <div class="match-card-header">
-                  <div class="match-label">最佳拍档</div>
+                  <div class="match-label">{resultPageCopy.bestMatchLabel}</div>
                   <div class="match-code">{matches().best.code}</div>
                   <div class="match-name">
                     {personalities[matches().best.code]?.name}
                   </div>
-                  <div class="match-hint">天造地设，惺惺相惜</div>
+                  <div class="match-hint">{resultPageCopy.bestMatchHint}</div>
                 </div>
                 <Portrait
                   code={matches().best.code}
@@ -348,16 +344,18 @@ export function ResultPage(props: {
               onClick={() =>
                 setPreviewDetail(personalities[matches().worst.code] ?? null)
               }
-              aria-label={`查看 ${personalities[matches().worst.code]?.name} 详情`}
+              aria-label={resultPageCopy.matchDetailAria(
+                personalities[matches().worst.code]?.name ?? matches().worst.code,
+              )}
             >
               <div class="match-card-top">
                 <div class="match-card-header">
-                  <div class="match-label">最怕遇到</div>
+                  <div class="match-label">{resultPageCopy.worstMatchLabel}</div>
                   <div class="match-code">{matches().worst.code}</div>
                   <div class="match-name">
                     {personalities[matches().worst.code]?.name}
                   </div>
-                  <div class="match-hint">相爱相杀，避之则吉</div>
+                  <div class="match-hint">{resultPageCopy.worstMatchHint}</div>
                 </div>
                 <Portrait
                   code={matches().worst.code}
@@ -379,42 +377,58 @@ export function ResultPage(props: {
 
         {/* Advice */}
         <section class="result-section advice-section">
-          <div class="section-eyebrow">一句忠告 · Advice</div>
+          <div class="section-eyebrow">{resultPageCopy.adviceEyebrow}</div>
           <p class="advice-text">"{p().advice}"</p>
         </section>
 
         {/* AI explain · 复制链接 + 跳转到 README 使用说明 */}
         <section class="result-section ai-explain-section">
-          <div class="section-eyebrow">AI 解读 · Explain with AI</div>
-          <h2 class="section-title">想问 AI：「我为什么是这个结果？」</h2>
+          <div class="section-eyebrow">{resultPageCopy.aiExplainEyebrow}</div>
+          <h2 class="section-title">{resultPageCopy.aiExplainTitle}</h2>
           <p class="ai-explain-desc">
-            本仓库自带一个 agent skill，可让 AI 根据你的分享链接，逐题拆解你四维得分的来源、告诉你哪几道题决定了这个结果、离哪个隐藏人格差一步。点击下方按钮会把你的分享链接复制到剪贴板，并跳转到 README 的 skill 使用说明；之后把链接交给任意支持 skill 的 AI 助手即可。
+            {resultPageCopy.aiExplainDescription}
           </p>
           <button
             type="button"
             class="btn btn-accent ai-explain-btn"
             onClick={() => void handleExplainWithAi()}
-            aria-label="复制分享链接并打开 explain-result skill 的 README 使用说明"
+            aria-label={resultPageCopy.aiExplainAria}
           >
-            {explainCopied()
-              ? '✓ 链接已复制，正在打开说明…'
-              : '复制链接 · 查看 AI 使用说明 →'}
+            <Show
+              when={explainCopied()}
+              fallback={
+                <>
+                  <span>{resultPageCopy.aiExplainOpenLabel}</span>
+                  <span class="btn-arrow" aria-hidden="true">
+                    <ArrowRight size={18} />
+                  </span>
+                </>
+              }
+            >
+              <span class="btn-arrow" aria-hidden="true">
+                <Check size={18} />
+              </span>
+              <span>{resultPageCopy.aiExplainCopiedLabel}</span>
+            </Show>
           </button>
         </section>
 
         <div class="result-footer">
           <button class="btn btn-accent" onClick={props.onRestart}>
-            再测一次 →
+            <span>{resultPageCopy.restartButton}</span>
+            <span class="btn-arrow" aria-hidden="true">
+              <ArrowRight size={18} />
+            </span>
           </button>
-          <p class="footer-text">FWTI · 自嘲型恋爱人格测试 · 仅供娱乐</p>
+          <p class="footer-text">{resultPageCopy.footerText}</p>
           <div class="result-site-qr-wrap">
-            <p class="result-site-qr-label">扫码打开测试</p>
+            <p class="result-site-qr-label">{resultPageCopy.siteQrLabel}</p>
             <a
               class="result-site-qr"
               href={FWTI_SITE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={`在新标签打开 ${FWTI_SITE_URL}`}
+              aria-label={resultPageCopy.siteQrAria(FWTI_SITE_URL)}
             >
               <img
                 src="/fwti-site-qr.png"
@@ -425,7 +439,7 @@ export function ResultPage(props: {
                 decoding="async"
               />
             </a>
-            <span class="result-site-qr-url">fwti.innei.dev</span>
+            <span class="result-site-qr-url">{resultPageCopy.siteQrText}</span>
           </div>
         </div>
 

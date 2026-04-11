@@ -1,5 +1,7 @@
 import { For } from 'solid-js';
-import { personalities } from '../data/personalities';
+import { ArrowRight } from 'lucide-solid';
+import { personalities } from '../copy/personalities';
+import { homePageCopy } from '../copy/ui';
 import {
   FAMILY_THEMES,
   getFamilyTheme,
@@ -38,46 +40,46 @@ function Tip(props: { title: string; desc: string }) {
 export function HomePage(props: { onStart: () => void }) {
   return (
     <div class="page home-page">
-      <TopNav meta="自嘲系列 · 娱乐测试" />
+      <TopNav meta={homePageCopy.topMeta} />
 
       <section class="home-hero">
         <div class="home-hero-inner">
-          <div class="eyebrow eyebrow-on-green">Fèiwù Type Indicator</div>
+          <div class="eyebrow eyebrow-on-green">{homePageCopy.heroEyebrow}</div>
           <h1 class="home-title">
-            MBTI 已经旧了
+            {homePageCopy.heroTitleLine1}
             <br />
-            FWTI 已经来了
+            {homePageCopy.heroTitleLine2}
           </h1>
-          <p class="home-subtitle">自嘲型恋爱人格测试</p>
+          <p class="home-subtitle">{homePageCopy.heroSubtitle}</p>
           <p class="home-lede">
-            约 30–37 道灵魂拷问，四维交叉分析，
+            {homePageCopy.heroLedeLine1}
             <br />
-            为君精准定位此生爱情之废料品类。
+            {homePageCopy.heroLedeLine2}
           </p>
           <div class="home-actions">
             <button class="btn btn-white" onClick={props.onStart}>
-              <span>开始测试</span>
+              <span>{homePageCopy.startButton}</span>
               <span class="btn-arrow" aria-hidden="true">
-                →
+                <ArrowRight size={18} />
               </span>
             </button>
-            <span class="home-time">约需 5 分钟</span>
+            <span class="home-time">{homePageCopy.duration}</span>
           </div>
         </div>
         <div class="home-hero-shape" aria-hidden="true" />
       </section>
 
       <section class="home-tips">
-        <Tip title="据实以答" desc="勿矫饰，废物亦有尊严。" />
-        <Tip title="勿钻牛角" desc="首觉即真，过虑反失真。" />
-        <Tip title="题必有选" desc="沉默非选项，爱情亦然。" />
+        <For each={homePageCopy.tips}>
+          {(tip) => <Tip title={tip.title} desc={tip.desc} />}
+        </For>
       </section>
 
       <section class="home-preview">
         <div class="preview-head">
-          <div class="preview-eyebrow">16 种人格 · The Waste Gallery</div>
-          <h2 class="preview-title">君之归宿，四族十六型</h2>
-          <p class="preview-hint">点击卡片查看类型释义</p>
+          <div class="preview-eyebrow">{homePageCopy.preview.eyebrow}</div>
+          <h2 class="preview-title">{homePageCopy.preview.title}</h2>
+          <p class="preview-hint">{homePageCopy.preview.hint}</p>
         </div>
         <div class="preview-grid">
           <For
@@ -96,7 +98,7 @@ export function HomePage(props: { onStart: () => void }) {
                     '--tile-tint': theme.tint,
                   }}
                   onClick={() => setPreviewDetail(p)}
-                  aria-label={`${p.name}（${p.code}）— 查看释义`}
+                  aria-label={homePageCopy.preview.tileAria(p.name, p.code)}
                 >
                   <Portrait
                     code={p.code}
@@ -117,10 +119,8 @@ export function HomePage(props: { onStart: () => void }) {
         <div class="preview-legend">
           <div class="preview-legend-block">
             <div class="preview-legend-block-head">
-              <span class="preview-legend-kicker">四族色谱</span>
-              <span class="preview-legend-note">
-                上图 16 张卡片之主色来自 G/D × Z/R 四象限
-              </span>
+              <span class="preview-legend-kicker">{homePageCopy.preview.quadrantsKicker}</span>
+              <span class="preview-legend-note">{homePageCopy.preview.quadrantsNote}</span>
             </div>
             <div class="preview-legend-row preview-legend-row--quadrants">
               <For each={PREVIEW_LEGEND_QUADRANT_ORDER}>
@@ -138,10 +138,8 @@ export function HomePage(props: { onStart: () => void }) {
           </div>
           <div class="preview-legend-block preview-legend-block--hidden">
             <div class="preview-legend-block-head">
-              <span class="preview-legend-kicker">隐藏人格 · 彩蛋</span>
-              <span class="preview-legend-note">
-                需特定作答触发，判定点见结果页；图例可点预览（含立绘），此墙不设卡片格
-              </span>
+              <span class="preview-legend-kicker">{homePageCopy.preview.hiddenKicker}</span>
+              <span class="preview-legend-note">{homePageCopy.preview.hiddenNote}</span>
             </div>
             <div class="preview-legend-row preview-legend-row--chips">
               <For each={PREVIEW_LEGEND_HIDDEN_ORDER}>
@@ -154,7 +152,7 @@ export function HomePage(props: { onStart: () => void }) {
                       type="button"
                       class="legend-chip"
                       onClick={() => setPreviewDetail(p)}
-                      aria-label={`${p.name}（${p.code}）— 查看释义`}
+                      aria-label={homePageCopy.preview.tileAria(p.name, p.code)}
                     >
                       <span class="legend-chip-emoji" aria-hidden="true">
                         {p.emoji}
@@ -171,9 +169,9 @@ export function HomePage(props: { onStart: () => void }) {
 
       <footer class="home-footer">
         <p class="home-disclaimer">
-          本测试仅供娱乐，未经临床验证，
+          {homePageCopy.footerDisclaimerLine1}
           <br class="mobile-only" />
-          请勿用于相亲、挽回、分手或发律师函。
+          {homePageCopy.footerDisclaimerLine2}
         </p>
       </footer>
     </div>

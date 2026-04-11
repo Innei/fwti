@@ -9,7 +9,9 @@ import {
 } from 'solid-js'
 import { toPng } from 'html-to-image'
 import QRCode from 'qrcode'
+import { X } from 'lucide-solid'
 import type { Result } from '../logic/scoring'
+import { shareImageModalCopy } from '../copy/ui'
 import Portrait from './Portrait'
 import { getFamilyTheme, getFamily } from '../logic/family'
 import { getSiteOrigin } from '../site'
@@ -122,7 +124,7 @@ export function ShareImageModal(props: {
         })
         if (!cancelled) setPreview(url)
       } catch {
-        if (!cancelled) setHint('生成图片失败，请稍后再试')
+        if (!cancelled) setHint(shareImageModalCopy.renderFailed)
       } finally {
         if (!cancelled) setBusy(false)
       }
@@ -153,15 +155,15 @@ export function ShareImageModal(props: {
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: `${p().name} · FWTI`,
-          text: `我的恋爱人格：${p().name}（${r().displayCode}）`,
+          title: shareImageModalCopy.fileTitle(p().name),
+          text: shareImageModalCopy.shareText(p().name, r().displayCode),
         })
       } else {
-        setHint('当前环境不支持系统分享，请使用保存图片')
+        setHint(shareImageModalCopy.shareUnsupported)
       }
     } catch (e) {
       if ((e as Error).name === 'AbortError') return
-      setHint('分享失败，可尝试保存图片')
+      setHint(shareImageModalCopy.shareFailed)
     }
   }
 
@@ -174,9 +176,9 @@ export function ShareImageModal(props: {
       await navigator.clipboard.write([
         new ClipboardItem({ 'image/png': blob }),
       ])
-      setHint('已复制图片，可粘贴到聊天或备忘录')
+      setHint(shareImageModalCopy.copySucceeded)
     } catch {
-      setHint('复制图片不被支持，请使用保存图片')
+      setHint(shareImageModalCopy.copyUnsupported)
     }
   }
 
@@ -199,32 +201,30 @@ export function ShareImageModal(props: {
           <div class="share-image-dialog-header">
             <div class="share-image-dialog-header-top">
               <h2 id="share-image-title" class="share-image-title">
-                分享为图片
+                {shareImageModalCopy.title}
               </h2>
               <button
                 type="button"
                 class="share-image-close"
                 onClick={props.onClose}
-                aria-label="关闭"
+                aria-label={shareImageModalCopy.closeAria}
               >
-                ×
+                <X size={20} aria-hidden="true" />
               </button>
             </div>
-            <p class="share-image-lede">
-              保存或分享下方卡片；亦可复制图片粘贴到聊天。
-            </p>
+            <p class="share-image-lede">{shareImageModalCopy.lede}</p>
           </div>
 
           <div class="share-image-dialog-body">
             <div class="share-image-preview-wrap">
               {busy() && !preview() ? (
-                <div class="share-image-loading">生成中…</div>
+                <div class="share-image-loading">{shareImageModalCopy.loading}</div>
               ) : null}
               {preview() ? (
                 <img
                   class="share-image-preview"
                   src={preview()!}
-                  alt={`${p().name} 测试结果图`}
+                  alt={shareImageModalCopy.previewAlt(p().name)}
                 />
               ) : null}
             </div>
@@ -240,7 +240,7 @@ export function ShareImageModal(props: {
                 disabled={!preview() || busy()}
                 onClick={onDownload}
               >
-                保存图片
+                {shareImageModalCopy.downloadButton}
               </button>
               <button
                 type="button"
@@ -248,7 +248,7 @@ export function ShareImageModal(props: {
                 disabled={!preview() || busy()}
                 onClick={onShare}
               >
-                系统分享
+                {shareImageModalCopy.systemShareButton}
               </button>
               <button
                 type="button"
@@ -256,7 +256,7 @@ export function ShareImageModal(props: {
                 disabled={!preview() || busy()}
                 onClick={onCopy}
               >
-                复制图片
+                {shareImageModalCopy.copyImageButton}
               </button>
             </div>
           </div>
@@ -276,8 +276,8 @@ export function ShareImageModal(props: {
           >
             <p class="share-image-card-eyebrow">
               {r().isAll || r().isHidden
-                ? '隐藏人格解锁 · FWTI'
-                : 'FWTI · 自嘲型恋爱人格测试'}
+                ? shareImageModalCopy.hiddenEyebrow
+                : shareImageModalCopy.defaultEyebrow}
             </p>
             <Portrait
               code={p().code}
@@ -292,7 +292,7 @@ export function ShareImageModal(props: {
             <div class="share-image-card-code">{r().displayCode}</div>
             <p class="share-image-card-tagline">「{p().tagline}」</p>
             <div class="share-image-card-waste">
-              <span class="share-image-card-waste-label">废物指数</span>
+              <span class="share-image-card-waste-label">{shareImageModalCopy.wasteLabel}</span>
               <div class="share-image-card-waste-dots">
                 <For each={Array.from({ length: 5 })}>
                   {(_, i) => (
@@ -344,7 +344,7 @@ export function ShareImageModal(props: {
 
             <Show when={r().unlockedHiddenTitles.length > 0}>
               <div class="share-image-card-achv">
-                <span class="share-image-card-achv-label">隐藏标签</span>
+                <span class="share-image-card-achv-label">{shareImageModalCopy.hiddenTitleLabel}</span>
                 <div class="share-image-card-achv-chips">
                   <For each={r().unlockedHiddenTitles}>
                     {(t) => <span class="share-image-chip">「{t.name}」</span>}

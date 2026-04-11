@@ -18,12 +18,12 @@ import {
   resolveOptionText,
   resolveQuestionText,
   type Question as CurrentQuestion,
-} from '../data/questions';
+} from '../copy/questions';
 import {
   personalities,
   hiddenTitles,
   type HiddenTitle,
-} from '../data/personalities';
+} from '../copy/personalities';
 import { buildQuestionPath } from './flow';
 import {
   makeAnswerLens,
@@ -300,7 +300,8 @@ export function getResult(
         optionIdx,
         currentStatus,
       ),
-    archetypeTraits: personality.traits,
+    personalityCode: personality.code,
+    personalityName: personality.name,
     isHidden,
     isAll,
   });

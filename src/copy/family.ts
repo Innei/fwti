@@ -1,0 +1,16 @@
+export const FAMILY_THEME_NAMES = {
+  gz: '冲动暴躁',
+  gr: '冲动忍耐',
+  dz: '犹豫暴躁',
+  dr: '犹豫忍耐',
+  all: '我全都要',
+  rat: '鼠鼠恋人',
+  pure: '纯爱战士',
+  mad: '发疯文学家',
+  edog: '赛博舔狗',
+  chaos: '已读乱回',
+  cpu: 'CPU 恋人',
+  bench: '备胎之王',
+  void: '电子断联户',
+  limbo: '意难平学家',
+} as const;

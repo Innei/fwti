@@ -1,4 +1,4 @@
-import { metaQuestion } from '../data/questions';
+import { metaQuestion } from '../copy/questions';
 
 export const metaQuestionId = metaQuestion.id;
 

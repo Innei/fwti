@@ -15,8 +15,8 @@
  * 就是消费者选择 scorer 的依据。
  */
 
-import { questionIds as v2Ids } from '../data/questions';
-import { legacyQuestionIdsV1 } from '../data/legacy/questions-v1';
+import { questionIds as v2Ids } from '../copy/questions';
+import { legacyQuestionIdsV1 } from '../copy/legacy/questions-v1';
 import type { RelationshipStatus } from './scoring';
 
 export type StatusChar = 'd' | 'a' | 'c' | 's';

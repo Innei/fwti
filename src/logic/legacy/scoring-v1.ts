@@ -8,8 +8,8 @@ import {
   resolveOptionText,
   resolveQuestionText,
   type Question as LegacyQuestion,
-} from '../../data/legacy/questions-v1';
-import { personalities, hiddenTitles, type HiddenTitle } from '../../data/personalities';
+} from '../../copy/legacy/questions-v1';
+import { personalities, hiddenTitles, type HiddenTitle } from '../../copy/personalities';
 import {
   buildResultNarrative,
   type ResultNarrative,
@@ -438,7 +438,8 @@ export function getResult(
         optionIdx,
         currentStatus,
       ),
-    archetypeTraits: personality.traits,
+    personalityCode: personality.code,
+    personalityName: personality.name,
     isHidden,
     isAll,
   });

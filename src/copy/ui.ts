@@ -1,0 +1,154 @@
+export const navCopy = {
+  logoAria: '返回首页',
+  githubAria: '在 GitHub 上查看源码',
+  githubLabel: 'GitHub',
+  historyAria: '测试记录',
+  historyLabel: '记录',
+  resultNav: {
+    shareImage: '分享图片',
+    restart: '重新测试',
+  },
+} as const;
+
+export const homePageCopy = {
+  topMeta: '自嘲系列 · 娱乐测试',
+  quizRangeText: '约 30 至 39 题',
+  heroEyebrow: 'Fèiwù Type Indicator',
+  heroTitleLine1: 'MBTI 已经旧了',
+  heroTitleLine2: 'FWTI 已经来了',
+  heroSubtitle: '自嘲型恋爱人格测试',
+  heroLedeLine1: '约 30–37 道灵魂拷问，四维交叉分析，',
+  heroLedeLine2: '为君精准定位此生爱情之废料品类。',
+  startButton: '开始测试',
+  duration: '约需 5 分钟',
+  tips: [
+    { title: '据实以答', desc: '勿矫饰，废物亦有尊严。' },
+    { title: '勿钻牛角', desc: '首觉即真，过虑反失真。' },
+    { title: '题必有选', desc: '沉默非选项，爱情亦然。' },
+  ],
+  preview: {
+    eyebrow: '16 种人格 · The Waste Gallery',
+    title: '君之归宿，四族十六型',
+    hint: '点击卡片查看类型释义',
+    tileAria: (name: string, code: string) => `${name}（${code}）— 查看释义`,
+    quadrantsKicker: '四族色谱',
+    quadrantsNote: '上图 16 张卡片之主色来自 G/D × Z/R 四象限',
+    hiddenKicker: '隐藏人格 · 彩蛋',
+    hiddenNote:
+      '需特定作答触发，判定点见结果页；图例可点预览（含立绘），此墙不设卡片格',
+  },
+  footerDisclaimerLine1: '本测试仅供娱乐，未经临床验证，',
+  footerDisclaimerLine2: '请勿用于相亲、挽回、分手或发律师函。',
+} as const;
+
+export const quizPageCopy = {
+  heroTitle: '自嘲型恋爱人格测试',
+  heroSubtitle:
+    '据实作答，勿过虑，题题必选；若场景不适用，请按前置题所选语境代入想象。当前路径随前置题与部分选项动态扩展。',
+  metaBadge: '前置',
+  metaNote: '前置题只用于语境路由，不计分；若稍后更改此项，后续答案会自动重置。',
+  optionGroupAria: '选项',
+  optionAria: (label: string) => `选项 ${label}`,
+  viewResult: '查看结果',
+  completeMeta: '请先完成前置题',
+  remainingQuestions: (count: number) => `还差 ${count} 题`,
+  topMeta: (progress: number, total: number) => `进行中 · ${progress} / ${total}`,
+} as const;
+
+export const historyPageCopy = {
+  title: '测试记录',
+  clearAll: '清空全部',
+  hiddenBadge: '隐藏',
+  wasteLevel: (value: number) => `废物指数 ${value}/5`,
+  viewDetailAria: '查看详情',
+  deleteAria: '删除',
+  emptyText: '尚无测试记录。',
+  startButton: '开始测试',
+} as const;
+
+export const previewModalCopy = {
+  closeAria: '关闭',
+  wasteLabel: '废物指数',
+  traitsTitle: '常见病状',
+  catchphrasesTitle: '口头禅',
+  compatibilityTitle: '配对',
+  bestLabel: '最佳',
+  worstLabel: '最糟',
+  adviceLabel: '一言以告',
+} as const;
+
+export const shareImageModalCopy = {
+  title: '分享为图片',
+  closeAria: '关闭',
+  lede: '保存或分享下方卡片；亦可复制图片粘贴到聊天。',
+  loading: '生成中…',
+  renderFailed: '生成图片失败，请稍后再试',
+  previewAlt: (name: string) => `${name} 测试结果图`,
+  downloadButton: '保存图片',
+  systemShareButton: '系统分享',
+  copyImageButton: '复制图片',
+  fileTitle: (name: string) => `${name} · FWTI`,
+  shareText: (name: string, code: string) => `我的恋爱人格：${name}（${code}）`,
+  shareUnsupported: '当前环境不支持系统分享，请使用保存图片',
+  shareFailed: '分享失败，可尝试保存图片',
+  copySucceeded: '已复制图片，可粘贴到聊天或备忘录',
+  copyUnsupported: '复制图片不被支持，请使用保存图片',
+  hiddenEyebrow: '隐藏人格解锁 · FWTI',
+  defaultEyebrow: 'FWTI · 自嘲型恋爱人格测试',
+  wasteLabel: '废物指数',
+  hiddenTitleLabel: '隐藏标签',
+} as const;
+
+export const resultPageCopy = {
+  evidenceFacetLabels: {
+    initiative: '主动推进',
+    expression: '情绪表达',
+    closeness: '亲密节奏',
+    security: '安全感',
+    default: '作答证据',
+  },
+  legacyBanner: {
+    badge: '旧版测试结果',
+    text: '此链接来自旧版题库，按当时规则解读。新版已引入分支题库与归一化评分，结果可能不同。',
+    cta: '点此重测新版',
+  },
+  heroEyebrow: (isHidden: boolean) =>
+    isHidden ? '隐藏人格解锁 · 你的恋爱人格是' : '测试完成 · 你的恋爱人格是',
+  tiedNote: (dimensionCount: number) =>
+    `共有 ${dimensionCount} 个维度打平；若硬要归类，你最接近`,
+  wasteLabel: '废物指数',
+  hiddenAchievementsEyebrow: '隐藏成就 · Achievements',
+  hiddenAchievementsTitle: (count: number) => `你额外解锁了 ${count} 个隐藏标签`,
+  hiddenBadge: '隐藏',
+  dimensionsEyebrow: '维度分析 · Dimensions',
+  dimensionsTitle: '四维坐标',
+  profileEyebrow: '动态画像 · Profile',
+  profileTitle: '这次的你更像这样',
+  evidenceEyebrow: '作答证据 · Evidence',
+  evidenceTitle: '这次是怎么判到这里的',
+  signalsEyebrow: '关键题目 · Signals',
+  signalsTitle: '你亲手交出的证据',
+  signalQuestionLabel: '判定题目',
+  signalAnswerLabel: '你的原话',
+  signalNoteLabel: '系统解释',
+  compatibilityEyebrow: '配对 · Compatibility',
+  compatibilityTitle: '缘分图谱',
+  bestMatchLabel: '最佳拍档',
+  bestMatchHint: '天造地设，惺惺相惜',
+  worstMatchLabel: '最怕遇到',
+  worstMatchHint: '相爱相杀，避之则吉',
+  matchDetailAria: (name: string) => `查看 ${name} 详情`,
+  adviceEyebrow: '一句忠告 · Advice',
+  aiExplainEyebrow: 'AI 解读 · Explain with AI',
+  aiExplainTitle: '想问 AI：「我为什么是这个结果？」',
+  aiExplainDescription:
+    '本仓库自带一个 agent skill，可让 AI 根据你的分享链接，逐题拆解你四维得分的来源、告诉你哪几道题决定了这个结果、离哪个隐藏人格差一步。点击下方按钮会把你的分享链接复制到剪贴板，并跳转到 README 的 skill 使用说明；之后把链接交给任意支持 skill 的 AI 助手即可。',
+  aiExplainOpenLabel: '复制链接 · 查看 AI 使用说明',
+  aiExplainCopiedLabel: '链接已复制，正在打开说明…',
+  aiExplainAria: '复制分享链接并打开 explain-result skill 的 README 使用说明',
+  restartButton: '再测一次',
+  footerText: 'FWTI · 自嘲型恋爱人格测试 · 仅供娱乐',
+  siteQrLabel: '扫码打开测试',
+  siteQrAria: (url: string) => `在新标签打开 ${url}`,
+  siteQrText: 'fwti.innei.dev',
+} as const;

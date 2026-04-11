@@ -1,5 +1,7 @@
 import { createSignal, For, Show } from 'solid-js';
 import { navigate } from 'vike/client/router';
+import { ArrowRight, X } from 'lucide-solid';
+import { historyPageCopy } from '../copy/ui';
 import { getHistory, clearHistory, deleteHistoryEntry } from '../logic/history';
 import { getFamilyTheme } from '../logic/family';
 import { TopNav } from './Nav';
@@ -46,13 +48,13 @@ function HistoryCard(props: {
             <span class="hist-card-name">{s().name}</span>
             <span class="hist-card-code">{s().displayCode}</span>
             <Show when={s().isHidden}>
-              <span class="hist-card-hidden">隐藏</span>
+              <span class="hist-card-hidden">{historyPageCopy.hiddenBadge}</span>
             </Show>
           </div>
           <div class="hist-card-tagline">「{s().tagline}」</div>
           <div class="hist-card-meta">
             <span class="hist-card-waste">
-              废物指数 {s().wasteLevel}/5
+              {historyPageCopy.wasteLevel(s().wasteLevel)}
             </span>
             <span class="hist-card-date">{formatDate(e().ts)}</span>
           </div>
@@ -62,17 +64,17 @@ function HistoryCard(props: {
             type="button"
             class="hist-btn hist-btn--view"
             onClick={() => void navigate(`/result/${e().hash}`)}
-            aria-label="查看详情"
+            aria-label={historyPageCopy.viewDetailAria}
           >
-            →
+            <ArrowRight size={18} aria-hidden="true" />
           </button>
           <button
             type="button"
             class="hist-btn hist-btn--del"
             onClick={() => props.onDelete(e().hash)}
-            aria-label="删除"
+            aria-label={historyPageCopy.deleteAria}
           >
-            ×
+            <X size={18} aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -98,10 +100,10 @@ export function HistoryPage() {
       <TopNav />
       <div class="hist-container">
         <div class="hist-header">
-          <h1 class="hist-title">测试记录</h1>
+          <h1 class="hist-title">{historyPageCopy.title}</h1>
           <Show when={list().length > 0}>
             <button type="button" class="hist-clear-btn" onClick={handleClear}>
-              清空全部
+              {historyPageCopy.clearAll}
             </button>
           </Show>
         </div>
@@ -110,13 +112,16 @@ export function HistoryPage() {
           when={list().length > 0}
           fallback={
             <div class="hist-empty">
-              <p>尚无测试记录。</p>
+              <p>{historyPageCopy.emptyText}</p>
               <button
                 type="button"
                 class="btn btn-accent"
                 onClick={() => void navigate('/quiz')}
               >
-                开始测试 →
+                <span>{historyPageCopy.startButton}</span>
+                <span class="btn-arrow" aria-hidden="true">
+                  <ArrowRight size={18} />
+                </span>
               </button>
             </div>
           }

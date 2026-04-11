@@ -19,8 +19,8 @@ import {
   resolveOptionText,
   resolveQuestionText,
   type Question,
-} from '../src/data/questions';
-import { personalities, hiddenTitles } from '../src/data/personalities';
+} from '../src/copy/questions';
+import { personalities, hiddenTitles } from '../src/copy/personalities';
 import {
   hiddenPersonalityTriggers,
   hiddenTitleTriggers,
@@ -58,7 +58,7 @@ if (decoded.version === 1) {
           'v1 legacy link — pre-v0.4 question space. v0.4 scoring cannot faithfully reclassify this; answers dumped raw for manual reading only.',
         status: null,
         answersRaw: decoded.answers,
-        note: 'To interpret, read src/data/legacy/questions-v1.ts for id → wording.',
+        note: 'To interpret, read src/copy/legacy/questions-v1.ts for id → wording.',
       },
       null,
       2,

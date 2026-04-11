@@ -1,13 +1,15 @@
 import { For, Show } from 'solid-js'
+import { ArrowRight } from 'lucide-solid'
 import {
   resolveQuestionText,
   resolveOptionText,
   type Question,
-} from '../data/questions'
+} from '../copy/questions'
 import {
   getRelationshipStatus,
   type RelationshipStatus,
 } from '../logic/scoring'
+import { quizPageCopy } from '../copy/ui'
 import { TopNav } from './Nav'
 
 export function QuizPage(props: {
@@ -43,21 +45,19 @@ export function QuizPage(props: {
   }
   const mainLeft = () => Math.max(0, props.mainTotal - props.mainProgress)
   const submitLabel = () => {
-    if (props.canSubmit) return '查看结果'
-    if (!props.metaAnswered) return '请先完成前置题'
-    return `还差 ${mainLeft()} 题`
+    if (props.canSubmit) return quizPageCopy.viewResult
+    if (!props.metaAnswered) return quizPageCopy.completeMeta
+    return quizPageCopy.remainingQuestions(mainLeft())
   }
 
   return (
     <div class="page quiz-page">
-      <TopNav meta={`进行中 · ${props.mainProgress} / ${props.mainTotal}`} />
+      <TopNav meta={quizPageCopy.topMeta(props.mainProgress, props.mainTotal)} />
 
       <section class="quiz-hero">
         <div class="quiz-hero-inner">
-          <h1 class="quiz-hero-title">自嘲型恋爱人格测试</h1>
-          <p class="quiz-hero-sub">
-            据实作答，勿过虑，题题必选；若场景不适用，请按前置题所选语境代入想象。当前路径随前置题与部分选项动态扩展。
-          </p>
+          <h1 class="quiz-hero-title">{quizPageCopy.heroTitle}</h1>
+          <p class="quiz-hero-sub">{quizPageCopy.heroSubtitle}</p>
         </div>
       </section>
 
@@ -69,7 +69,7 @@ export function QuizPage(props: {
                 <Show
                   when={q.dimension !== 'META'}
                   fallback={
-                    <span class="quiz-item-num quiz-item-num-meta">前置</span>
+                    <span class="quiz-item-num quiz-item-num-meta">{quizPageCopy.metaBadge}</span>
                   }
                 >
                   <span class="quiz-item-num">
@@ -82,12 +82,10 @@ export function QuizPage(props: {
               </div>
               <p class="quiz-item-text">{resolveQuestionText(q, status())}</p>
               <Show when={q.dimension === 'META'}>
-                <p class="quiz-item-note">
-                  前置题只用于语境路由，不计分；若稍后更改此项，后续答案会自动重置。
-                </p>
+                <p class="quiz-item-note">{quizPageCopy.metaNote}</p>
               </Show>
 
-              <div class="quiz-options" role="group" aria-label="选项">
+              <div class="quiz-options" role="group" aria-label={quizPageCopy.optionGroupAria}>
                 <For each={q.options}>
                   {(opt, oi) => (
                       <button
@@ -97,7 +95,7 @@ export function QuizPage(props: {
                           'is-selected': props.answers[q.id] === oi(),
                         }}
                         aria-pressed={props.answers[q.id] === oi()}
-                        aria-label={`选项 ${opt.label}`}
+                        aria-label={quizPageCopy.optionAria(opt.label)}
                         onClick={() => props.onSelect(q.id, oi())}
                       >
                         <span class="quiz-opt-badge">{opt.label}</span>
@@ -140,7 +138,7 @@ export function QuizPage(props: {
             <span>{submitLabel()}</span>
             <Show when={props.canSubmit}>
               <span class="btn-arrow" aria-hidden="true">
-                →
+                <ArrowRight size={18} />
               </span>
             </Show>
           </button>

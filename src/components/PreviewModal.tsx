@@ -1,5 +1,7 @@
 import { createEffect, onCleanup, For, Show } from 'solid-js';
-import { personalities } from '../data/personalities';
+import { X } from 'lucide-solid';
+import { personalities } from '../copy/personalities';
+import { previewModalCopy } from '../copy/ui';
 import { getFamilyTheme } from '../logic/family';
 import { getCompatibilityOutcome } from '../logic/compatibility';
 import Portrait from './Portrait';
@@ -47,9 +49,9 @@ export function PreviewModal() {
                 type="button"
                 class="preview-modal-close"
                 onClick={() => setPreviewDetail(null)}
-                aria-label="关闭"
+                aria-label={previewModalCopy.closeAria}
               >
-                ×
+                <X size={20} aria-hidden="true" />
               </button>
               <div class="preview-modal-icon">
                 <Portrait code={person.code} size={140} />
@@ -71,7 +73,7 @@ export function PreviewModal() {
               <hr class="preview-modal-divider" />
 
               <div class="preview-modal-waste">
-                <span class="preview-modal-waste-label">废物指数</span>
+                <span class="preview-modal-waste-label">{previewModalCopy.wasteLabel}</span>
                 <div class="preview-modal-waste-dots">
                   <For each={Array.from({ length: 5 })}>
                     {(_, i) => (
@@ -93,24 +95,24 @@ export function PreviewModal() {
               </div>
 
               <div class="preview-modal-section">
-                <div class="preview-modal-section-title">常见病状</div>
+                <div class="preview-modal-section-title">{previewModalCopy.traitsTitle}</div>
                 <ul class="preview-modal-traits">
                   <For each={person.traits}>{(t) => <li>{t}</li>}</For>
                 </ul>
               </div>
 
               <div class="preview-modal-section">
-                <div class="preview-modal-section-title">口头禅</div>
+                <div class="preview-modal-section-title">{previewModalCopy.catchphrasesTitle}</div>
                 <ul class="preview-modal-phrases">
                   <For each={person.catchphrases}>{(c) => <li>{c}</li>}</For>
                 </ul>
               </div>
 
               <div class="preview-modal-section">
-                <div class="preview-modal-section-title">配对</div>
+                <div class="preview-modal-section-title">{previewModalCopy.compatibilityTitle}</div>
                 <div class="preview-modal-matches">
                   <div class="preview-modal-match best">
-                    <span class="match-lbl">最佳</span>
+                    <span class="match-lbl">{previewModalCopy.bestLabel}</span>
                     <div class="match-code-row">
                       <span class="match-emoji" aria-hidden="true">
                         {personalities[matches.best.code]?.emoji}
@@ -125,7 +127,7 @@ export function PreviewModal() {
                     </p>
                   </div>
                   <div class="preview-modal-match worst">
-                    <span class="match-lbl">最糟</span>
+                    <span class="match-lbl">{previewModalCopy.worstLabel}</span>
                     <div class="match-code-row">
                       <span class="match-emoji" aria-hidden="true">
                         {personalities[matches.worst.code]?.emoji}
@@ -143,7 +145,7 @@ export function PreviewModal() {
               </div>
 
               <div class="preview-modal-advice">
-                <div class="preview-modal-advice-label">一言以告</div>
+                <div class="preview-modal-advice-label">{previewModalCopy.adviceLabel}</div>
                 <p class="preview-modal-advice-text">{person.advice}</p>
               </div>
             </div>
