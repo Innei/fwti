@@ -154,10 +154,11 @@ function postEvent(payload: TelemetryPayload, useBeacon = false): void {
   const sessionId = getSessionId();
   const visitorId = getVisitorId();
   if (!sessionId || !visitorId) return;
+  const eventId = payload.id ?? randomId();
 
   const body = JSON.stringify({
     ...payload,
-    id: payload.id ?? randomId(),
+    id: eventId,
     sessionId,
     visitorId,
     routePath: payload.routePath ?? window.location.pathname,
@@ -178,7 +179,6 @@ function postEvent(payload: TelemetryPayload, useBeacon = false): void {
   ) {
     const blob = new Blob([body], { type: 'application/json' });
     navigator.sendBeacon(`${endpoint}/api/events`, blob);
-    return;
   }
 
   void fetch(`${endpoint}/api/events`, {
