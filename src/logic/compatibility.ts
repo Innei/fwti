@@ -74,6 +74,9 @@ const HIDDEN_PROTOTYPES: Record<string, CompatibilityVector> = {
   CHAOS: { GD: 0, ZR: 0.1, NL: -0.2, YF: -0.1, volatility: 0.95 },
   CPU: { GD: 0.1, ZR: 0.1, NL: 0.3, YF: 1, volatility: 0.85 },
   BENCH: { GD: 0.4, ZR: -0.5, NL: -0.3, YF: 0.6, volatility: 0.45 },
+  // JOKER · 小丑 — predicates.ts: GD > 0.3 + YF ≤ -0.4 + ZR 维内自相攻伐 ≥ 2。
+  // 向量取主动偏高、表面佛系、ZR 净均值近零（炸/忍互抵但波动大）。
+  JOKER: { GD: 0.5, ZR: 0, NL: 0, YF: -0.5, volatility: 0.7 },
   VOID: { GD: -0.9, ZR: -0.2, NL: -0.8, YF: -0.2, volatility: 0.2 },
   LIMBO: { GD: 0, ZR: 0, NL: 0.4, YF: 0.9, volatility: 0.65 },
   // ─── v3 · 12 主型 prototype（GD/ZR/NL/YF alias of C/R/A/S）──
@@ -274,15 +277,51 @@ function buildChoice(
   };
 }
 
+// ─── 候选池分代 ─────────────────────────────────────────────────
+// 结果码分三代同堂：v1/v2 四字母 16 格、v3 三字母 12 格、共享 hidden。
+// 配对若跨代混搭，v3 用户会见到 `DZLY` 这类旧码出现在"最佳/最糟"，破坏版本自洽。
+// 故按入参码之代归属划池，只在同代内挑 best/worst。hidden 按代别重名共用。
+const V3_CODES: ReadonlySet<string> = new Set([
+  'CHS', 'CMD', 'CNV',
+  'RSO', 'RBS', 'RSU',
+  'ACL', 'ANR', 'ADS',
+  'SCA', 'SNT', 'SFL',
+  // v3 hidden：v3/personalities.ts 内明确定义之四条
+  'MAD', 'RAT', 'ALL', 'VOID',
+]);
+
+const LEGACY_HIDDEN: ReadonlySet<string> = new Set([
+  'ALL', 'RAT', 'PURE', 'MAD', 'E-DOG',
+  'CHAOS', 'CPU', 'BENCH', 'JOKER', 'VOID', 'LIMBO',
+]);
+
+function isLegacy4(code: string): boolean {
+  return code.length === 4 && /^[GD][ZR][NL][YF]$/.test(code);
+}
+
+function candidatePool(code: string): string[] {
+  const keys = Object.keys(personalities);
+  // v3 码 → 仅同为 v3 候选
+  if (V3_CODES.has(code)) {
+    return keys.filter((c) => c !== code && V3_CODES.has(c));
+  }
+  // legacy/v2 码（四字母或老 hidden）→ 仅同池候选
+  if (isLegacy4(code) || LEGACY_HIDDEN.has(code)) {
+    return keys.filter(
+      (c) => c !== code && (isLegacy4(c) || LEGACY_HIDDEN.has(c)),
+    );
+  }
+  // 未知码兜底：退回全集除自（保持旧行为，不因分代而抛错）
+  return keys.filter((c) => c !== code);
+}
+
 const COMPATIBILITY_CACHE = new Map<string, CompatibilityOutcome>();
 
 export function getCompatibilityOutcome(code: string): CompatibilityOutcome {
   const cached = COMPATIBILITY_CACHE.get(code);
   if (cached) return cached;
 
-  const allCodes = Object.keys(personalities).filter(
-    (candidate) => candidate !== code,
-  );
+  const allCodes = candidatePool(code);
   let bestCode = code;
   let worstCode = code;
   let bestScore = Number.NEGATIVE_INFINITY;
