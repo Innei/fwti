@@ -885,3 +885,15 @@ export const hiddenTitle = {
   description: hiddenTitles.retractMaster.description,
   threshold: 1,
 };
+
+// ═══════════════════════════════════════════════════════════════════
+// v3 merge · 将 v3 新增 code（CHS/CMD/.../MAD/RAT/ALL/VOID）与 10 tags 注入
+// 全局 `personalities` 与 `hiddenTitles`，使 UI 对 v3 结果无缝消费。
+// v3 与 v2 的 code 空间不重叠（v2 为 4 字母笛卡尔积 + 长 hidden 名；v3 主 3 字母），
+// 除 MAD / RAT / ALL / VOID 共名——v3 对这 4 项的新文案会覆盖 v2 的同名项（有意）。
+// 若未来需保留 v2 同名 hidden 的旧文案，请切成显式 map + 版本前缀访问。
+// ═══════════════════════════════════════════════════════════════════
+import { personalitiesV3 } from './v3/personalities';
+import { hiddenTitlesV3 } from './v3/tags';
+Object.assign(personalities, personalitiesV3);
+Object.assign(hiddenTitles, hiddenTitlesV3);

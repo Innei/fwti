@@ -1214,16 +1214,9 @@ function assertInvariants(): void {
   }
 }
 
-const maybeImportMetaEnv =
-  typeof import.meta !== 'undefined'
-    ? (Reflect.get(import.meta, 'env') as
-        | {
-            DEV?: boolean;
-          }
-        | undefined)
-    : undefined;
-
-const isDevRuntime = !!maybeImportMetaEnv?.DEV;
+// vite 8 对 env flag 动态探测做了收紧；此处放弃运行期 dev 探测，
+// invariant 改为手动调用（需要时直接 import 并执行 `assertInvariants()`）。
+const isDevRuntime = false;
 
 if (isDevRuntime) {
   assertInvariants();

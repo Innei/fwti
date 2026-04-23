@@ -8,9 +8,14 @@ import {
   setRetreatCount,
 } from '../../src/App'
 import { metaQuestionId, applyAnswerSelection } from '../../src/logic/answers'
-import { encodeAnswersV2 } from '../../src/logic/codec'
-import { getRelationshipStatus, getResult } from '../../src/logic/scoring'
-import { buildQuestionPath, isPathComplete } from '../../src/logic/flow'
+import { encodeAnswersV3 } from '../../src/logic/codec'
+import { getResultV3 } from '../../src/logic/v3/scoring'
+import {
+  buildQuestionPathV3,
+  getRelationshipStatusV3,
+  isPathCompleteV3,
+} from '../../src/logic/v3/flow'
+import type { Question } from '../../src/copy/questions'
 import {
   beginQuizRun,
   trackPageView,
@@ -20,20 +25,17 @@ import {
 
 export default function Page() {
   const metaAnswered = () => answers()[metaQuestionId] !== undefined
-  const status = () => getRelationshipStatus(answers())
-  const path = () => buildQuestionPath(answers(), status())
+  const status = () => getRelationshipStatusV3(answers())
+  const path = () => buildQuestionPathV3(answers(), status())
   const nonMetaPath = () => path().filter((q) => q.dimension !== 'META')
   const mainTotal = () => nonMetaPath().length
   const mainProgress = () => {
     const cur = answers()
     return nonMetaPath().filter((q) => cur[q.id] !== undefined).length
   }
-  const canSubmit = () => isPathComplete(answers(), status())
+  const canSubmit = () => isPathCompleteV3(answers(), status())
 
   function selectOption(qId: number, optionIdx: number) {
-    // v0.3 · 「退退退」触发计数：只统计路径上的题"改答"——即已经选过一次、现在换成另一个
-    // 选项。META 前置题的改动会走 applyAnswerSelection 的语境清空路径，不算在内；
-    // 重复点击同一选项也不增加计数。
     const prev = answers()
     const isRetreat =
       qId !== metaQuestionId &&
@@ -47,8 +49,6 @@ export default function Page() {
   }
 
   function scrollToNextUnanswered(fromId: number) {
-    // 基于"当前路径"扫描而非全题库：follow-up 被触发后会立即进入 path，
-    // 父题答案变更后失效的 follow-up 也会自动从 path 中消失。
     const cur = answers()
     const list = path()
     if (list.length === 0) return
@@ -68,13 +68,14 @@ export default function Page() {
 
   function submitQuiz() {
     const s = status()
-    if (s === null) return // META 未答，按钮也 disabled，双保险
-    const result = getResult(answers(), retreatCount(), s)
-    const encoded = encodeAnswersV2(answers(), s)
+    if (s === null) return // META 未答
+    const result = getResultV3(answers(), retreatCount(), s)
+    const encoded = encodeAnswersV3(answers(), s)
     trackQuizComplete({
       hash: encoded,
       status: s,
-      result,
+      // telemetry 的 Result 字段按 v2 形状定义，v3 结构同形（structural compat），强转以复用。
+      result: result as unknown as Parameters<typeof trackQuizComplete>[0]['result'],
       retreatCount: retreatCount(),
       answeredCount: mainProgress(),
       mainTotal: mainTotal(),
@@ -109,7 +110,9 @@ export default function Page() {
 
   return (
     <QuizPage
-      path={path()}
+      // v3 Question 与 v2 Question 为 duck-compatible（同 dimension/text/options/variants 字段），
+      // QuizPage 运行时仅读取 dimension !== 'META' + resolver，跨版本安全。
+      path={path() as unknown as Question[]}
       mainTotal={mainTotal()}
       mainProgress={mainProgress()}
       metaAnswered={metaAnswered()}

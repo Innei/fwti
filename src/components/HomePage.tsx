@@ -8,25 +8,16 @@ import {
   PREVIEW_HIDDEN_PERSONALITY_CODE,
   PREVIEW_LEGEND_HIDDEN_ORDER,
   PREVIEW_LEGEND_QUADRANT_ORDER,
+  PREVIEW_MAIN_CODES,
 } from '../logic/family';
 import Portrait from './Portrait';
 import { TopNav } from './Nav';
 import { setPreviewDetail } from '../state';
 
-/** 首页卡片网格中需要隐藏的隐藏人格代号（测试触发才显现）。 */
-const HIDDEN_CODES_EXCLUDED_FROM_PREVIEW = new Set([
-  'ALL',
-  'RAT',
-  'PURE',
-  'MAD',
-  'E-DOG',
-  'CHAOS',
-  'CPU',
-  'BENCH',
-  'JOKER',
-  'VOID',
-  'LIMBO',
-]);
+/**
+ * 首页卡片网格仅渲染 v3 12 主型（见 `PREVIEW_MAIN_CODES`）。
+ * v2 legacy 16 型与所有 hidden（v2/v3 共计）均通过 allowlist 自然排除。
+ */
 
 function Tip(props: { title: string; desc: string }) {
   return (
@@ -83,8 +74,8 @@ export function HomePage(props: { onStart: () => void }) {
         </div>
         <div class="preview-grid">
           <For
-            each={Object.values(personalities).filter(
-              (p) => !HIDDEN_CODES_EXCLUDED_FROM_PREVIEW.has(p.code),
+            each={PREVIEW_MAIN_CODES.map((code) => personalities[code]).filter(
+              (p): p is NonNullable<typeof p> => !!p,
             )}
           >
             {(p) => {

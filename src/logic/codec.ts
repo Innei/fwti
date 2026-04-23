@@ -1,23 +1,22 @@
 /**
- * v0.4 · 分享链接编解码 · 显式版本分流。
+ * v0.4+ · 分享链接编解码 · 三版分流。
  *
- * 两种格式：
- *   v1 (legacy): 无前缀，直接是 base64url(digit-or-dash 序列)。对应 v0.3 的 32–34 位
- *     扁平 questionIds。解码走 `legacyQuestionIdsV1` + legacy scoring。
- *   v2 (current): `v2.<statusChar>.<payload>`，statusChar ∈ {d, a, c, s}，
- *     payload 与 v1 同形但针对 v0.4 的 questionIds（含主干 + 四状态 extensions + follow-ups）。
+ * 前缀格式：
+ *   v1 (legacy)   : 无前缀，直接是 base64url(digit-or-dash 序列)。对应 v0.3 的 32–34 位。
+ *   v2 (v0.4)     : `v2.<statusChar>.<payload>`，v0.4 的 questionIds（主干 + extensions）。
+ *   v3 (current)  : `v3.<statusChar>.<payload>`，v3 重写（32 题扁平 + 新四维 C/R/A/S）。
  *
- * 新链接必须走 v2（携带 status，便于 scoring 按路径过滤）。旧链接自动落入 legacy
- * 渲染并在 UI 上挂"旧版结果"徽标，不重新解释到 v0.4 规则。
+ * 新链接一律走 v3。v1/v2 链接落入 legacy 渲染并在 UI 上挂"旧版结果"徽标，不跨版本解释。
  *
- * 关键安全线：不得尝试用 v0.4 scoring 解释 v1 answers——两者的题 id 空间已分叉，
- * 直接跨版本跑 getResult 会产生错误的维度归一化。decodeAnswers 返回的 version 字段
- * 就是消费者选择 scorer 的依据。
+ * 关键安全线：不得跨版本解释 answers——题 id 空间已分叉。decodeAnswers 返回的
+ * version 字段就是消费者选择 scorer 的依据。
  */
 
 import { questionIds as v2Ids } from '../copy/questions';
 import { legacyQuestionIdsV1 } from '../copy/legacy/questions-v1';
 import type { RelationshipStatus } from './scoring';
+import { decodeAnswersV3, type DecodedAnswersV3 } from './v3/codec';
+export { encodeAnswersV3 } from './v3/codec';
 
 export type StatusChar = 'd' | 'a' | 'c' | 's';
 
@@ -36,6 +35,11 @@ const CHAR_TO_STATUS: Record<StatusChar, Exclude<RelationshipStatus, null>> = {
 };
 
 export type DecodedAnswers =
+  | {
+      version: 3;
+      answers: Record<number, number>;
+      status: Exclude<RelationshipStatus, null>;
+    }
   | {
       version: 2;
       answers: Record<number, number>;
@@ -139,11 +143,15 @@ function decodeV1(encoded: string): DecodedAnswers | null {
 // ───────────────────────────────────────────────────────────────
 
 /**
- * 自动版本检测 · 先看前缀走 v2，否则回退 v1 legacy。
- * 返回 null 表示完全无法解析（两路都失败），调用方应 redirect 回首页。
+ * 自动版本检测 · v3 > v2 > v1 legacy 依序匹配。
+ * 返回 null 表示完全无法解析（三路都失败），调用方应 redirect 回首页。
  */
 export function decodeAnswers(encoded: string): DecodedAnswers | null {
   if (!encoded) return null;
+  if (encoded.startsWith('v3.')) {
+    const v3 = decodeAnswersV3(encoded);
+    return v3 as DecodedAnswersV3 | null;
+  }
   if (encoded.startsWith('v2.')) {
     return decodeV2(encoded);
   }

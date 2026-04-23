@@ -4,6 +4,7 @@ import { usePageContext } from 'vike-solid/usePageContext'
 import { ResultPage, retreatCount, setAnswers, setRetreatCount } from '../../src/App'
 import { decodeAnswers } from '../../src/logic/codec'
 import { getResult, type Result } from '../../src/logic/scoring'
+import { getResultV3 } from '../../src/logic/v3/scoring'
 import { getLegacyResultV1 } from '../../src/logic/legacy/scoring-v1'
 import { saveToHistory } from '../../src/logic/history'
 import { resetTelemetryQuizRun, trackPageView, trackResultView } from '../../src/telemetry/client'
@@ -24,18 +25,20 @@ export default function Page() {
     const decoded = decodeAnswers(hash)
     if (!decoded) return null
 
-    // 分享链接解码进来时 retreatCount 恒为 0（当前 session 未答题），故「退退退」标签
-    // 不会在观众端触发；只有从 /quiz 亲自提交过来的 session 才会带上非零的回退计数。
+    // 分享链接解码时 retreatCount 恒为 0（观者未答题）——「反复横跳」tag 不会在观众端触发。
     if (decoded.version === 1) {
-      // v0.3 链 → frozen legacy scoring。不得用 v0.4 scorer 解释旧 answers，
-      // 两者题 id 空间已分叉，跨版本跑会产生错误的维度归一化。
+      // v0.3 链 → frozen legacy scoring，禁止跨版本解释。
       const legacy = getLegacyResultV1(decoded.answers, retreatCount()) as Result
       return { result: legacy, isLegacy: true, hash }
     }
-    // v2 链 → 当前 scorer。URL 携带的 statusChar 作为 override 传入——与 answers[32]
-    // 反推的 status 正常情况下同源；手改 URL 时以链标为准，观者所见与分享链一致。
-    const result = getResult(decoded.answers, retreatCount(), decoded.status)
-    return { result, isLegacy: false, hash }
+    if (decoded.version === 2) {
+      // v0.4 链 → v2 scorer。statusChar 作为 override 与 answers[32] 反推同源；手改 URL 以链标为准。
+      const result = getResult(decoded.answers, retreatCount(), decoded.status)
+      return { result, isLegacy: true, hash }
+    }
+    // v3 链 → 当前 scorer。ResultV3 与 Result 结构同形（structural compat），强转消费。
+    const v3 = getResultV3(decoded.answers, retreatCount(), decoded.status)
+    return { result: v3 as unknown as Result, isLegacy: false, hash }
   })
 
   onMount(() => {

@@ -76,6 +76,19 @@ const HIDDEN_PROTOTYPES: Record<string, CompatibilityVector> = {
   BENCH: { GD: 0.4, ZR: -0.5, NL: -0.3, YF: 0.6, volatility: 0.45 },
   VOID: { GD: -0.9, ZR: -0.2, NL: -0.8, YF: -0.2, volatility: 0.2 },
   LIMBO: { GD: 0, ZR: 0, NL: 0.4, YF: 0.9, volatility: 0.65 },
+  // ─── v3 · 12 主型 prototype（GD/ZR/NL/YF alias of C/R/A/S）──
+  CHS: { GD: 0.8, ZR: 0.1, NL: 0.3, YF: 0.3, volatility: 0.35 },
+  CMD: { GD: 0, ZR: -0.1, NL: 0, YF: -0.2, volatility: 0.15 },
+  CNV: { GD: -0.8, ZR: -0.3, NL: -0.4, YF: -0.2, volatility: 0.2 },
+  RSO: { GD: 0.2, ZR: 0.9, NL: 0.2, YF: 0.3, volatility: 0.7 },
+  RBS: { GD: 0.1, ZR: 0, NL: 0.1, YF: -0.4, volatility: 0.1 },
+  RSU: { GD: -0.2, ZR: -0.9, NL: 0.1, YF: 0.4, volatility: 0.45 },
+  ACL: { GD: 0.4, ZR: 0.3, NL: 0.9, YF: 0.3, volatility: 0.45 },
+  ANR: { GD: 0.1, ZR: 0, NL: 0, YF: -0.3, volatility: 0.15 },
+  ADS: { GD: -0.3, ZR: -0.2, NL: -0.9, YF: -0.3, volatility: 0.2 },
+  SCA: { GD: 0.3, ZR: 0.5, NL: 0.4, YF: 0.9, volatility: 0.7 },
+  SNT: { GD: 0.1, ZR: 0, NL: 0.1, YF: 0, volatility: 0.1 },
+  SFL: { GD: -0.1, ZR: -0.3, NL: -0.3, YF: -0.9, volatility: 0.2 },
 };
 
 function standardVectorFromCode(code: string): CompatibilityVector | null {
