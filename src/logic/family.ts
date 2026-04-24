@@ -27,27 +27,33 @@ export interface FamilyTheme {
   tint: string;
 }
 
+/*
+ * v2 redesign · 甜皮黑心 neo-brutalist pastel palette。
+ * color 字段直接作为贴纸底色；tint 保留语义，在 v2 下变成同色更淡层（仅极少数场景用）。
+ * 见 DESIGN.md §2.3 / §2.4。
+ */
 export const FAMILY_THEMES: Record<Family, FamilyTheme> = {
-  gz: { key: 'gz', name: FAMILY_THEME_NAMES.gz, color: '#F25E62', tint: 'rgba(242, 94, 98, 0.08)' },
-  gr: { key: 'gr', name: FAMILY_THEME_NAMES.gr, color: '#E4AE3A', tint: 'rgba(228, 174, 58, 0.10)' },
-  dz: { key: 'dz', name: FAMILY_THEME_NAMES.dz, color: '#88619A', tint: 'rgba(136, 97, 154, 0.08)' },
-  dr: { key: 'dr', name: FAMILY_THEME_NAMES.dr, color: '#33A474', tint: 'rgba(51, 164, 116, 0.08)' },
-  // v0.3 隐藏人格：每型自有配色（对应 PROMPT.md §5 各条目的 family color cue）。
-  all: { key: 'all', name: FAMILY_THEME_NAMES.all, color: '#6B7280', tint: 'rgba(107, 114, 128, 0.10)' },
-  rat: { key: 'rat', name: FAMILY_THEME_NAMES.rat, color: '#4A4A4A', tint: 'rgba(74, 74, 74, 0.10)' },
-  pure: { key: 'pure', name: FAMILY_THEME_NAMES.pure, color: '#D4A574', tint: 'rgba(212, 165, 116, 0.10)' },
-  mad: { key: 'mad', name: FAMILY_THEME_NAMES.mad, color: '#C73E3E', tint: 'rgba(199, 62, 62, 0.10)' },
-  edog: { key: 'edog', name: FAMILY_THEME_NAMES.edog, color: '#E8A5C8', tint: 'rgba(232, 165, 200, 0.10)' },
-  chaos: { key: 'chaos', name: FAMILY_THEME_NAMES.chaos, color: '#B7A4D1', tint: 'rgba(183, 164, 209, 0.10)' },
-  cpu: { key: 'cpu', name: FAMILY_THEME_NAMES.cpu, color: '#E07A2B', tint: 'rgba(224, 122, 43, 0.10)' },
-  bench: { key: 'bench', name: FAMILY_THEME_NAMES.bench, color: '#CBB89A', tint: 'rgba(203, 184, 154, 0.10)' },
-  void: { key: 'void', name: FAMILY_THEME_NAMES.void, color: '#3B4252', tint: 'rgba(59, 66, 82, 0.10)' },
-  limbo: { key: 'limbo', name: FAMILY_THEME_NAMES.limbo, color: '#5A3A5E', tint: 'rgba(90, 58, 94, 0.10)' },
-  // v3 · 四族（按主导维度）
-  c: { key: 'c', name: FAMILY_THEME_NAMES.c, color: '#FF6B9D', tint: 'rgba(255, 107, 157, 0.10)' },
-  r: { key: 'r', name: FAMILY_THEME_NAMES.r, color: '#FF5252', tint: 'rgba(255, 82, 82, 0.10)' },
-  a: { key: 'a', name: FAMILY_THEME_NAMES.a, color: '#FF9AA2', tint: 'rgba(255, 154, 162, 0.10)' },
-  s: { key: 's', name: FAMILY_THEME_NAMES.s, color: '#4A90A4', tint: 'rgba(74, 144, 164, 0.10)' },
+  // v2 legacy 4 家族（pastel）
+  gz: { key: 'gz', name: FAMILY_THEME_NAMES.gz, color: '#FFB4B8', tint: 'rgba(255, 180, 184, 0.5)' }, // 珊瑚
+  gr: { key: 'gr', name: FAMILY_THEME_NAMES.gr, color: '#FFE08A', tint: 'rgba(255, 224, 138, 0.5)' }, // 柠檬
+  dz: { key: 'dz', name: FAMILY_THEME_NAMES.dz, color: '#D4B8E8', tint: 'rgba(212, 184, 232, 0.5)' }, // 薰紫
+  dr: { key: 'dr', name: FAMILY_THEME_NAMES.dr, color: '#A8E6C9', tint: 'rgba(168, 230, 201, 0.5)' }, // 薄荷
+  // v3 · 四族（主导维度）—— 映回 v2 pastel 家族色以保持调色板纯净
+  c: { key: 'c', name: FAMILY_THEME_NAMES.c, color: '#FFB4B8', tint: 'rgba(255, 180, 184, 0.5)' },   // = gz
+  r: { key: 'r', name: FAMILY_THEME_NAMES.r, color: '#FFE08A', tint: 'rgba(255, 224, 138, 0.5)' },   // = gr
+  a: { key: 'a', name: FAMILY_THEME_NAMES.a, color: '#D4B8E8', tint: 'rgba(212, 184, 232, 0.5)' },   // = dz
+  s: { key: 's', name: FAMILY_THEME_NAMES.s, color: '#A8E6C9', tint: 'rgba(168, 230, 201, 0.5)' },   // = dr
+  // 隐藏人格：单色皆在 pastel 语调内微调；badge 形状走珊瑚浓单一版（DESIGN.md §2.4）
+  all: { key: 'all', name: FAMILY_THEME_NAMES.all, color: '#D6D3CF', tint: 'rgba(214, 211, 207, 0.5)' },
+  rat: { key: 'rat', name: FAMILY_THEME_NAMES.rat, color: '#B8B2A8', tint: 'rgba(184, 178, 168, 0.5)' },
+  pure: { key: 'pure', name: FAMILY_THEME_NAMES.pure, color: '#F4DAB5', tint: 'rgba(244, 218, 181, 0.5)' },
+  mad: { key: 'mad', name: FAMILY_THEME_NAMES.mad, color: '#FF9AA2', tint: 'rgba(255, 154, 162, 0.5)' },
+  edog: { key: 'edog', name: FAMILY_THEME_NAMES.edog, color: '#FFD6E8', tint: 'rgba(255, 214, 232, 0.5)' },
+  chaos: { key: 'chaos', name: FAMILY_THEME_NAMES.chaos, color: '#C8B8E4', tint: 'rgba(200, 184, 228, 0.5)' },
+  cpu: { key: 'cpu', name: FAMILY_THEME_NAMES.cpu, color: '#FFC99A', tint: 'rgba(255, 201, 154, 0.5)' },
+  bench: { key: 'bench', name: FAMILY_THEME_NAMES.bench, color: '#E4D4B5', tint: 'rgba(228, 212, 181, 0.5)' },
+  void: { key: 'void', name: FAMILY_THEME_NAMES.void, color: '#B5C4D4', tint: 'rgba(181, 196, 212, 0.5)' },
+  limbo: { key: 'limbo', name: FAMILY_THEME_NAMES.limbo, color: '#C9B4D1', tint: 'rgba(201, 180, 209, 0.5)' },
 };
 
 /** v3 · 首页预览图例：四族（12 型卡片角标色） */

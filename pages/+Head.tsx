@@ -33,8 +33,8 @@ export function Head() {
       <script
         innerHTML={`(function(){try{var t=localStorage.getItem('fwti-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t;}catch(e){}})();`}
       />
-      <meta name="theme-color" content="#33a474" />
-      <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#09090b" />
+      <meta name="theme-color" content="#FFF8F0" />
+      <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1D1217" />
       <meta
         name="keywords"
         content="FWTI,恋爱测试,性格测试,趣味测试,自嘲型恋爱人格,娱乐测试"
@@ -52,12 +52,6 @@ export function Head() {
       {jsonLd ? (
         <script type="application/ld+json" innerHTML={jsonLd} />
       ) : null}
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-      <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Red+Hat+Display:wght@500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
-        rel="stylesheet"
-      />
     </>
   )
 }

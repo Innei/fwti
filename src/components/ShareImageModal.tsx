@@ -116,7 +116,7 @@ export function ShareImageModal(props: {
           explicit === 'dark' ||
           (explicit !== 'light' &&
             window.matchMedia('(prefers-color-scheme: dark)').matches)
-        const bg = isDark ? '#09090b' : '#ffffff'
+        const bg = isDark ? '#1d1217' : '#fff8f0'
         const url = await toPng(captureHost, {
           pixelRatio: 2,
           cacheBust: true,

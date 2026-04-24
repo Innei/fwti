@@ -1,373 +1,273 @@
-# Design System Inspiration of FWTI
+# Design System of FWTI (v2 · Sweet Wrapper, Dark Meme)
 
 > **FWTI（Fèiwù Type Indicator · 恋爱废物人格测试）** — A Chinese self-deprecating romance personality quiz. 16 archetypes + 8 hidden types, built with Solid.js + Vike SSG.
+
+> v2 redesign: **甜皮黑心 / neo-brutalist 贴纸风**。奶油 pastel 底 + 粗黑描边 + 硬位移黑影 + 家族色贴纸块 + washi 胶带装饰。纯换皮（IA1），页 / 路由 / 组件树 / 逻辑不动，仅重写视觉语言。
+
+---
+
+## 0. What changed vs v1
+
+| 维度 | v1（current code） | v2（target） |
+|---|---|---|
+| 气质 | 绿 accent + zinc 中性灰 · 干净 SaaS | 奶油 pastel + 粗黑边 + 位移影 · 贴纸手账 |
+| 边 | `1px solid #e4e4e7` 细淡灰 | `2px solid #1a1a1a` 粗黑墨 |
+| 影 | 只在 hover 出现；多层柔化 `rgba(0,0,0,0.08)` | 常态 hard offset `4px 4px 0 #1a1a1a`（无 blur）|
+| 主色 | 单 emerald `#33a474` | 四家族 pastel（珊瑚 / 柠檬 / 薰紫 / 薄荷）+ CTA 珊瑚浓 `#FF4D6D` |
+| display 字 | Red Hat Display 700 | Archivo Black 900 + Noto Sans SC Heavy |
+| 深色模式 | 全盘翻转（bg / ink / surface 全变） | 墙反卡不反 — 只翻 bg / nav / 墙上之字；卡内部仍奶油 |
+| 装饰 | 无 | washi 胶带斜条 + 虚线分隔 + highlight 底色 + 家族/隐藏圆章 badge |
+| 范围 | — | 路由 / 页结构 / 组件树 / 业务逻辑不动；改 CSS + 组件模板 |
 
 ---
 
 ## 1. Visual Theme & Atmosphere
 
-FWTI's design is a tonal contradiction that mirrors its content: a quiz that calls you a romantic disaster, presented with the restraint and precision of a serious design system. The dominant visual is a full-bleed **emerald green** (`#33a474`) hero against zinc-neutral surfaces — a warmth that disarms before the roast lands.
+v2 的基调是**甜皮黑心**（sweet wrapper, dark meme）——奶油 pastel 外壳把"你是恋爱废物"的毒舌裹起来，像朋友手写的便签塞进你口袋，拆开才发现里面在骂你。
 
-**Key Characteristics:**
+**Key characteristics:**
 
-- **Primary surface**: Pure white `#ffffff` (light) / near-black `#09090b` (dark). The zinc family — not gray, not slate — creates a cooler undertone that distances the brand from clinical MBTI aesthetics.
-- **Signature accent**: FWTI Green `#33a474` saturates heroes, progress fills, selected states, and call-to-action buttons. It signals forward motion and choice in an otherwise neutral chrome.
-- **Four family colors as a second accent layer**: GZ Coral `#F25E62`, GR Amber `#E4AE3A`, DZ Purple `#88619A`, DR Green `#33A474` each tint the personality result page via a `data-family` override, so every result card feels distinctly personal while sharing the same spatial grammar.
-- **Glassmorphism bars**: Both the sticky top nav and the fixed submit bar use `backdrop-filter: saturate(160%) blur(10px)` — the only "effect" in the system. Everything else is flat.
-- **Typography pairing**: `Red Hat Display` (display weight 700, humanist geometry) for all headings, paired with `Inter` for body copy and `Noto Sans SC` as the CJK fallback. The combination reads authoritative in Latin and natural in Simplified Chinese.
-- **Radii vocabulary**: Four tiers — `999px` pill (badges, progress bars, chips), `20–24px` (card tiles, advice block), `12–16px` (modals, tip cards), `6–8px` (small buttons, logo mark). Pills carry playfulness; lower radii carry seriousness.
-- **Elevation strategy**: Almost entirely border-based (`1px solid #e4e4e7`). Real shadows appear only on hover lifts (`translateY(-4px)`), modals, and share image previews — used sparingly to signal interactivity, not decoration.
-- **Motion philosophy**: All transitions are `0.15s ease` for micro-interactions and `0.2–0.25s ease` for lift hovers. Modal entry uses `cubic-bezier(0.16, 1, 0.3, 1)` — a spring curve that feels snappy on mobile. Progress bars use `0.8s cubic-bezier(0.22, 0.61, 0.36, 1)`.
-- **Dark mode**: Full first-class support via `[data-theme='dark']` attribute toggled from `localStorage`, with a FOUC-prevention inline script in `<head>`. Dark surfaces use `#09090b` / `#18181b` / `#27272a` — no blue tint, just deep zinc.
-- **Accessibility signature**: Focus rings use `2px solid var(--fwti-accent)` with `outline-offset: 2–3px` consistently across all interactive elements.
+- **Primary surface**：奶油纸 `#FFF8F0`（light）/ 深炭 `#0F0E0D`（dark）。奶油不是纯白，是带一点暖黄的纸色，呼应手账 metaphor。
+- **Ink 墨色**：`#1a1a1a`（light 常亮）/ `#F5EBD7`（dark 翻转）。用于边、主文字、位移影。整个 brutalist 语言都建立在这一笔"墨"上。
+- **Family colors as pastel stickers**：GZ 珊瑚 `#FFB4B8`、GR 柠檬 `#FFE08A`、DZ 薰紫 `#D4B8E8`、DR 薄荷 `#A8E6C9`。每色都是低饱和、高明度的贴纸色，必配 `2px #1a1a1a` 黑边 + `4px 4px 0` 黑影，否则在奶油底上会化。
+- **Single accent CTA**：珊瑚浓 `#FF4D6D`，只用于 primary 按钮（开始测试 / 下一题 / 生成分享图），全站唯一的"饱和色注意力"。
+- **Shadow as stamp**：所有 card / button / badge 在 resting 状态就带 `4px 4px 0 var(--shadow-ink)` 硬位移影，无 blur。效果像贴纸压上去有一个黑色错位的印。**hover 不加影，改位移**（见 §6）。
+- **Typography pairing**：`Archivo Black`（900，display）+ `Inter`（400-700，body / UI）+ `JetBrains Mono`（编号 / meta）。中文对应 `Noto Sans SC` Heavy（900）/ Medium-Semibold。
+- **Radii vocabulary**：`999px` pill（chip / 进度 / family badge 圆章）/ `12-14px` card & button / `10px` quiz option / `6-8px` small inline（letter 方块、code chip）/ `0` 极罕用（仅虚线 divider 端点）。
+- **Decoration as grammar**：washi 胶带斜条（rotated 半透矩形）、`2px dashed` 分隔、`<mark>` 式 highlight 底色 —— 用于强调但不过量（每屏 ≤ 3 处）。
+- **Dark mode · 墙反卡不反**：只反 bg / nav / 墙上之字 / 影子色；卡片（portrait / 人格卡 / quiz 选项 / modal）内部继续走 light 配色。详见 §2.5。
+- **Motion**：`0.15s ease` 默认；选中态用 `transform: translate(2px,2px)` + 阴影同步缩 2px，模拟"按下贴纸"。modal 入场保留 `cubic-bezier(0.16,1,0.3,1) 0.22s`。
 
 ---
 
 ## 2. Color Palette & Roles
 
-### Primary Brand
+### 2.1 Primary Brand
 
-- **FWTI Green** (`#33a474`): `--fwti-green`. The primary call-to-action, hero background, progress fill, selected-state border. Derived from DR (犹豫忍耐) family.
-- **FWTI Green Dark** (`#278a60`): `--fwti-green-dark`. Hover state for `.btn-green`; slightly deeper push-down effect.
-- **Accent Tint Default** (`rgba(51, 164, 116, 0.08)`): `--fwti-accent-tint`. Radial glow behind portrait images; background of "best match" cards when accent is green.
+- **奶油 Cream** (`#FFF8F0`)：`--fwti-bg`。页底、卡底衬托。
+- **蜜桃纸 Peach Paper** (`#FFE5D4`)：`--fwti-bg-card`。personality 卡、quiz 题干卡、history 列表项。
+- **分区蜜桃 Soft Peach** (`#FFF0E5`)：`--fwti-bg-soft`。section 分区、quiz 外层容器。
+- **墨 Ink** (`#1a1a1a`)：`--fwti-ink`。主文字、边、位移影、纯黑 badge。
 
-### Personality Family Colors
+### 2.2 Accent
 
-- **GZ Coral** (`#F25E62`): `--fwti-gz`. 冲动暴躁 family. Tile gradient tint `rgba(242, 94, 98, 0.08)`.
-- **GR Amber** (`#E4AE3A`): `--fwti-gr`. 冲动忍耐 family. Tile gradient tint `rgba(228, 174, 58, 0.10)`.
-- **DZ Purple** (`#88619A`): `--fwti-dz`. 犹豫暴躁 family. Tile gradient tint `rgba(136, 97, 154, 0.08)`.
-- **DR Green** (`#33A474`): `--fwti-dr`. 犹豫忍耐 family (same as primary green).
+- **珊瑚浓 Coral Pop** (`#FF4D6D`)：`--fwti-accent`。primary CTA 唯一饱和色。悬停 `#E8334F`，禁用 `opacity: 0.45`。
+- **Accent ink on**：`#ffffff`。文字 on accent 永远是白，不用 ink。
 
-### Hidden Personality Accents
+### 2.3 Personality Family Colors (Pastel)
 
-- **ALL Gray** (`#6B7280`): 我全都要 — neutral ambiguity made literal.
-- **RAT Charcoal** (`#4A4A4A`): 鼠鼠恋人 — blends into shadows.
-- **PURE Sand** (`#D4A574`): 纯爱战士 — warm parchment.
-- **MAD Red** (`#C73E3E`): 发疯文学家 — urgent, alarming.
-- **E-DOG Pink** (`#E8A5C8`): 赛博舔狗 — soft sakura.
-- **CHAOS Lavender** (`#B7A4D1`): 已读乱回 — scattered violet.
-- **CPU Orange** (`#E07A2B`): CPU 恋人 — processing amber.
-- **BENCH Tan** (`#CBB89A`): 备胎之王 — resigned beige.
-- **VOID Slate** (`#3B4252`): 电子断联户 — dark Nordic blue-gray.
-- **LIMBO Mauve** (`#5A3A5E`): 意难平学家 — nostalgic purple.
+| 代码 | 名 | Hex | 用途 |
+|---|---|---|---|
+| GZ | 珊瑚 Coral | `#FFB4B8` | 冲动暴躁家族底色 · portrait 框 · 结果卡染色 |
+| GR | 柠檬 Lemon | `#FFE08A` | 冲动忍耐家族 · washi 胶带常用色 · A 选项 letter |
+| DZ | 薰紫 Lavender | `#D4B8E8` | 犹豫暴躁家族 · 维度 N 条 |
+| DR | 薄荷 Mint | `#A8E6C9` | 犹豫忍耐家族 · 维度 Y 条 |
 
-### Neutral Scale (Light Mode)
+**Rule**：pastel 色块内文字**强制** `color: var(--on-pastel)` = `#1a1a1a`，永不跟 `--fwti-ink` 翻转。此规则在 dark mode 下尤为关键——否则深底上的 pastel 贴纸会继承反色文字而白字贴浅底，失去可读性。
 
-- **Surface White** (`#ffffff`): `--fwti-bg`, `--fwti-surface`. Page background, modal background.
-- **Soft Background** (`#f4f4f5`): `--fwti-bg-soft`. Card backgrounds, quiz option default, advice section fill.
-- **Tinted Background** (`#f4f4f5`): `--fwti-bg-tint`. Quiz option selected state background.
-- **Text Dark** (`#18181b`): `--fwti-text-dark`. All primary text, headings.
-- **Text Mid** (`#52525b`): `--fwti-text-mid`. Secondary labels, nav items, metadata.
-- **Text Soft** (`#71717a`): `--fwti-text-soft`. Tertiary hints, eyebrows, disclaimers.
+### 2.4 Hidden Personality Accents
 
-### Neutral Scale (Dark Mode)
+保留 v1 的 10 款隐藏家族色（ALL / RAT / PURE / MAD / E-DOG / CHAOS / CPU / BENCH / VOID / LIMBO），但在 v2 都套同一套 pastel 调色——低饱和 + 必配黑边 + 黑影。若与 family 4 色冲突（如 E-DOG 粉接近 GZ），走圆章 badge 的黑底荧光字版本（`bg: #1a1a1a, text: #FFE08A or #FFB4B8`）以区分。
 
-- **Background** (`#09090b`): `--fwti-bg` (dark). Page background.
-- **Surface** (`#18181b`): `--fwti-bg-soft`, `--fwti-surface` (dark). Card backgrounds.
-- **Tinted** (`#27272a`): `--fwti-bg-tint` (dark). Hover states, chips.
-- **Text Dark** (`#fafafa`): `--fwti-text-dark` (dark). Primary text.
-- **Text Mid** (`#a1a1aa`): `--fwti-text-mid` (dark). Secondary labels.
-- **Elevated Surface** (`#3f3f46`): `--fwti-border-strong` (dark). Strong borders, dot empties.
+### 2.5 Dark Mode — 墙反卡不反
 
-### Surface & Borders
+- **bg**: `#0F0E0D`（深炭墙）
+- **bg-soft**: `#1A1917`（分区更深）
+- **ink**: `#F5EBD7`（奶油纸色，墙上用）
+- **shadow-ink**: `#F5EBD7`（影子变"墙光"）
+- **nav / footer / page-level 大标题 / subtitle** → 走 `--ink`
+- **卡内部**（portrait 框、人格卡、quiz 选项、modal body、chip）**继续用 light token**：底仍是 pastel / 蜜桃，文字仍是 `#1a1a1a`，边仍是 `#1a1a1a`
+- **CTA 珊瑚浓** 不变；on-dark 时边改为 `--ink`（`#F5EBD7`），影子改为 `--shadow-ink`
 
-- **Border Default Light** (`#e4e4e7`): `--fwti-border`. All card borders, dividers, input borders.
-- **Border Strong Light** (`#d4d4d8`): `--fwti-border-strong`. Hover borders, outline button border.
-- **Border Default Dark** (`#27272a`): `--fwti-border` (dark).
-- **Border Strong Dark** (`#3f3f46`): `--fwti-border-strong` (dark).
-- **Nav Background Light** (`rgba(255, 255, 255, 0.92)`): `--fwti-nav-bg`. Frosted glass bar.
-- **Nav Background Dark** (`rgba(9, 9, 11, 0.92)`): `--fwti-nav-bg` (dark).
-- **Submit Bar Light** (`rgba(255, 255, 255, 0.96)`): `--fwti-submit-bar-bg`. Denser frost.
-- **Modal Background Light** (`#ffffff`): `--fwti-modal-bg`.
-- **Modal Background Dark** (`#18181b`): `--fwti-modal-bg` (dark).
-- **Modal Border Light** (`rgba(0, 0, 0, 0.08)`): `--fwti-modal-border`.
-- **Modal Border Dark** (`rgba(255, 255, 255, 0.10)`): `--fwti-modal-border` (dark).
-
-### Shadow Colors
-
-- **Preview Tile Shadow Light** (`rgba(0, 0, 0, 0.08)`): `--fwti-preview-tile-shadow`. Hover lifts on grid tiles and legend chips.
-- **Preview Tile Shadow Dark** (`rgba(0, 0, 0, 0.35)`): `--fwti-preview-tile-shadow` (dark).
-- **Match Card Shadow Light** (`rgba(0, 0, 0, 0.08)`): `--fwti-match-card-shadow`. Hover on compatibility cards.
-- **Match Card Shadow Dark** (`rgba(0, 0, 0, 0.40)`): `--fwti-match-card-shadow` (dark).
-- **Modal Shadow Key Light** (`rgba(0, 0, 0, 0.18)`): Spread layer in `--fwti-modal-box-shadow`.
-- **Modal Shadow Rim Light** (`rgba(0, 0, 0, 0.04)`): Ring layer in `--fwti-modal-box-shadow`.
-- **Modal Shadow Key Dark** (`rgba(0, 0, 0, 0.55)`): Spread layer in dark modal box-shadow.
-- **Modal Shadow Rim Dark** (`rgba(255, 255, 255, 0.06)`): Subtle light rim in dark modal.
-- **Overlay Light** (`rgba(10, 10, 10, 0.55)`): `--fwti-overlay`. Modal/drawer backdrop.
-- **Overlay Dark** (`rgba(0, 0, 0, 0.72)`): `--fwti-overlay` (dark). Denser backdrop.
+切换沿用 v1 机制：`localStorage['fwti-theme']` + `<html data-theme="dark">` + `+Head.tsx` 的 FOUC 预置脚本，代码不动。
 
 ---
 
 ## 3. Typography Rules
 
-Google Fonts loaded: `Inter:wght@400;500;600`, `Red Hat Display:wght@500;700`, `Noto Sans SC:wght@400;500;700`.  
-Global: `font-feature-settings: 'palt'` on `<body>` for proportional kana spacing. Base: `16px` root.
+Google Fonts loaded: `Inter:wght@400;500;600;700`, `Archivo Black:wght@400`, `Noto Sans SC:wght@400;500;700;900`, `JetBrains Mono:wght@500;700`.
 
-| Role | Font | Size | Weight | Line Height | Letter Spacing | Notes |
+废除 `Red Hat Display`——v2 的 display 字靠 `Archivo Black` 900 + `Noto Sans SC` 900 的硬实感，Red Hat Display 的人文几何太柔。
+
+**Variables:**
+- `--font-display`: `'Archivo Black', 'Noto Sans SC', system-ui, sans-serif`
+- `--font-body`: `'Inter', 'Noto Sans SC', system-ui, sans-serif`
+- `--font-mono`: `'JetBrains Mono', ui-monospace, SFMono-Regular, monospace`
+
+| Role | Font | Size | Weight | LH | Tracking | Notes |
 |---|---|---|---|---|---|---|
-| Result Name (hero) | Red Hat Display | 64px (4.00rem) | 700 | 1.05 (tight) | −1.28px (−0.02em) | Largest CJK heading |
-| Result Eng (hero) | Red Hat Display | 68px (4.25rem) | 700 | 1.20 | normal (0) | Uppercase, fixed-width per-char cells |
-| Home H1 Title | Red Hat Display | 56px (3.50rem) | 700 | 1.12 (tight) | −0.56px (−0.01em) | Collapses to 36px@720px, 30px@460px |
-| Share Card Name | Red Hat Display | 38px (2.38rem) | 700 | 1.35 | −0.76px (−0.02em) | Export PNG card heading |
-| Preview Section Title | Red Hat Display | 36px (2.25rem) | 700 | normal | −0.36px (−0.01em) | Collapses to 28px@720px |
-| Section Title | Red Hat Display | 34px (2.13rem) | 700 | 1.15 (tight) | −0.34px (−0.01em) | Collapses to 26px@720px |
-| Home Subtitle | Red Hat Display | 22px (1.38rem) | 600 | 1.35 | −0.22px (−0.01em) | Collapses to 17px@720px |
-| Match Name | Red Hat Display | 22px (1.38rem) | 700 | 1.20 | normal | Compatibility card type name |
-| Preview Tile Name | Red Hat Display | 20px (1.25rem) | 700 | normal | −0.20px (−0.01em) | Collapses to 16px@460px |
-| Catchphrase | Red Hat Display | 20px (1.25rem) | 500 | 1.55 | normal | Blockquote personality quotes |
-| Quiz Item Text | Red Hat Display | 26px (1.63rem) | 500 | 1.40 | normal | Collapses to 19px@460px |
-| Quiz Hero Title | Red Hat Display | 32px (2.00rem) | 700 | normal | −0.32px (−0.01em) | Collapses to 24px@720px |
-| Logo Text | Red Hat Display | 18px (1.13rem) | 700 | normal | +0.36px (+0.02em) | Nav brand name |
-| Advice / Closing Quote | Red Hat Display | 26px (1.63rem) | 500 | 1.50 | normal | Large centered italic feel |
-| Description Body | Inter | 17px (1.06rem) | 400 | 1.80 (relaxed) | normal | Personality result prose |
-| Body / Option Text | Inter | 14px (0.88rem) | 400 | 1.55 | normal | Quiz option text, modal body |
-| Nav / Small UI | Inter | 14px (0.88rem) | 500 | normal | +0.28px (+0.02em) | Nav links, restart button |
-| Small Label / Hint | Inter | 13px (0.81rem) | 400–500 | 1.60 | normal | Tip descriptions, match hints |
-| Eyebrow Label | Inter | 12px (0.75rem) | 600 | normal | +1.68px (+0.14em) | All-caps section markers |
-| Code Badge / Mono | SF Mono / ui-monospace | 11px (0.69rem) | 600 | normal | +0.66px (+0.06em) | Personality code chips |
-| Tag / Quiz Tag | Inter | 11px (0.69rem) | 600 | normal | +1.10px (+0.10em) | Pill tags (彩蛋, 前置) |
+| Home Hero 超大字 | display | 56-72px 流动 | 900 | 0.98 | −1px | 2 行中文 + 1 行小副标 |
+| Result Hero 名 | display | 36-48px | 900 | 1.05 | −0.5px | portrait 右侧 |
+| Quiz 题干 | display | 22-26px | 800-900 | 1.35 | normal | 独立题干卡内 |
+| Section Title | display | 28-36px | 900 | 1.10 | −0.5px | home grid 上、result section 间 |
+| Preview Tile Name | display | 18-20px | 900 | 1.10 | 0 | 家族色网格卡名 |
+| Catchphrase | display | 18-22px | 800 | 1.50 | 0 | 结果页 "君之废程" 金句框 |
+| Body (description) | body | 15-17px | 500 | 1.75 | 0 | personality 描述长文 |
+| Option Text | body | 13-15px | 600 | 1.45 | 0 | quiz 选项内文 |
+| Nav / Small UI | body | 13-14px | 700 | normal | +0.2px | nav 链接、按钮内 |
+| Small Label / Hint | body | 11-12px | 600 | 1.55 | +0.3px | 题目 meta、配对 label |
+| Code / Meta | mono | 10-12px | 500-700 | normal | +0.5px | GZNY 类代码、进度 19/33、时间戳 |
+| Badge / Chip | body | 10-11px | 700-900 | normal | +0.4px | family chip、+2 维度徽章 |
+
+**Rules:**
+1. Display 字只用 900 一档——v2 不要渐变 weight。要弱化就降字号，不降 weight。
+2. 中文 display 用 `font-synthesis: none`；Noto Sans SC Heavy（900）单独加载，不要浏览器合成加粗。
+3. `font-feature-settings: 'palt'` 保留（CJK 比例间距）。
+4. Highlight 用 `<mark>`：`background: #FFE08A; padding: 1px 4px; border: 1.5px solid #1a1a1a; font-weight: 700`。每屏 ≤ 3 处。
 
 ---
 
 ## 4. Component Stylings
 
-### Buttons
+### 4.1 Buttons
 
-**Primary Green (`.btn.btn-green`)**
-- Background: `#33a474`
-- Text: `#ffffff`
-- Border: none
-- Border Radius: `30px`
-- Padding: `16px 32px`
-- Font: Inter, 16px (1.00rem), weight 600
-- Box Shadow: `0 4px 16px rgba(51, 164, 116, 0.25)`
-- Hover: background `#278a60`, box-shadow `0 6px 20px rgba(51, 164, 116, 0.35)`
-- Disabled: `opacity: 0.45`
+**Primary Coral (`.btn.btn-primary`)**
+- bg: `#FF4D6D` · color: `#fff` · border: `2px solid var(--fwti-ink)` · radius: `10px`
+- padding: `10-12px 18-22px` · font: display 13-14px weight 900
+- shadow: `4px 4px 0 var(--shadow-ink)`
+- hover: `transform: translate(1px,1px); box-shadow: 3px 3px 0 var(--shadow-ink)`
+- active: `transform: translate(4px,4px); box-shadow: 0 0 0 var(--shadow-ink)`（完全压下）
+- disabled: `opacity: 0.45; pointer-events: none`
 
-**Accent (`.btn.btn-accent`)**
-- Background: `var(--fwti-accent)` (family color on result page)
-- Text: `#ffffff`
-- Box Shadow: `0 4px 16px rgba(0, 0, 0, 0.12)`
-- Hover: `filter: brightness(0.93)`
+**Secondary White (`.btn.btn-secondary`)**
+- bg: `#fff` · color: `var(--fwti-ink)` · 其余同 primary
+- hover: bg `--fwti-bg-card`
 
-**White / Reverse (`.btn.btn-white`)**
-- Background: `#ffffff`
-- Text: `#33a474`
-- Box Shadow: `0 4px 16px rgba(0, 0, 0, 0.08)`
-- Hover: background `#f6fcf9`, box-shadow `0 6px 22px rgba(0, 0, 0, 0.12)`
-- Used on dark hero backgrounds
+**Family Badge Button (`.btn.btn-family`)**
+- bg: 家族 pastel（通过 CSS var `--family`）· color: `#1a1a1a`（永远不随主题翻）
 
-**Outline (`.btn.btn-outline`)**
-- Background: `transparent`
-- Text: `#18181b` (var --fwti-text-dark)
-- Border: `2px solid #d4d4d8`
-- Box Shadow: none
-- Hover: background `#f4f4f5`, border-color `#71717a`
+### 4.2 Personality Tile (`.preview-tile`)
 
-**Nav Utility Button (`.nav-restart`)**
-- Background: `#f4f4f5`
-- Text: `#18181b`
-- Border: `1px solid #e4e4e7`
-- Border Radius: `8px`
-- Padding: `8px 14px`
-- Font: Inter, 14px, weight 500
-- Hover: background `#e4e4e7`, border-color `#d4d4d8`
+- 外层 bg: `var(--family-color)`（GZ/GR/DZ/DR pastel）
+- border: `2px solid var(--fwti-ink)` · radius: `12px` · shadow: `4px 4px 0 var(--shadow-ink)`
+- padding: `12-14px`
+- 内含：portrait 缩略（`#FFE5D4` 底 + 1.5px 黑边）+ 代码 mono + 名 display 18-20px
+- hover: `translate(-2px,-2px); box-shadow: 6px 6px 0 var(--shadow-ink)`（"贴纸翘起来"）
+- focus: `outline: 3px solid var(--fwti-accent); outline-offset: 2px`
+- grid: 4 列 desktop → 2 列 @720
 
-### Cards
+### 4.3 Portrait Frame (PT1)
 
-**Personality Tile (`.preview-tile`)**
-- Background: `linear-gradient(180deg, var(--tile-tint) 0%, var(--fwti-bg) 72%)`
-- Border: `1px solid #e4e4e7`
-- Border Radius: `20px`
-- Padding: `26px 18px 22px`
-- Hover: `transform: translateY(-4px)`, border-color changes to tile accent, `box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08)`
-- Focus: `outline: 2px solid var(--tile-color)`, outline-offset 3px
-- Grid: 4 columns on desktop → 2 columns at 720px
+Portrait webp 本身不动。外套 frame：
 
-**Tip Card (`.tip-card`)**
-- Background: `var(--fwti-surface)` = `#ffffff`
-- Border: `1px solid #e4e4e7`
-- Border Radius: `16px`
-- Padding: `28px 24px`
-- Box Shadow: `0 8px 32px rgba(0, 0, 0, 0.08)`
-- Floats up via negative margin (`margin-top: -60px`) over the green hero
+- 外层 block: bg 家族 pastel · border `2.5px solid var(--fwti-ink)` · radius `14px` · shadow `5px 5px 0 var(--shadow-ink)` · padding `10-12px`
+- 内衬：`aspect-ratio: 1; background: linear-gradient(135deg, ...); border: 1.5px solid var(--fwti-ink); border-radius: 8px`
+- **Washi tape**: 1-2 条 `<div>` absolute-positioned 在框顶部，`width: 36-60px; height: 12-16px; background: rgba(家族其他色, 0.85); transform: rotate(±4-8deg)`。位置/角度/色**按 code 字符串 hash 推导**（`hash = sum(charCodeAt) % N`，分别取 left-offset / rotation / 对比色索引），保证同一代码在任何页面看起来一致、不随渲染闪动
+- **Family badge**: 右上角 `-10px/-10px` 圆章，`32×32px; background: var(--fwti-ink); color: 家族色; border: 2px solid var(--fwti-ink); border-radius: 50%; font: mono 10px 900`
+- **Hidden badge**: 同位置，bg 改为 `var(--fwti-accent)` 珊瑚浓，内容 `"隐"` 字。注：隐藏人格各自的 accent（MAD 红 / PURE 沙 / E-DOG 粉等）通过 `data-family` 注入 `--family-color`，用于结果页整体染色；badge 形状本身保持单一珊瑚版以免 24 种 badge 视觉冗余。
 
-**Match Card (`.match-card`)**
-- Background: `#ffffff` (worst), `var(--fwti-accent-tint)` (best)
-- Border: `1px solid #e4e4e7` (worst), `1px solid var(--fwti-accent)` (best)
-- Border Radius: `16px`
-- Padding: `24px`
-- Hover: `transform: translateY(-2px)`, `box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08)`
-- Focus: `outline: 2px solid var(--fwti-accent)`, outline-offset 3px
+### 4.4 Quiz Option (`.quiz-opt`)
 
-**Hidden Title Card (`.hidden-title-card`)**
-- Background: `var(--fwti-accent-tint)` (family tint)
-- Border: `1px solid var(--fwti-accent)` (family color)
-- Border Radius: `20px`
-- Padding: `28px`
+- bg: `#fff` · border: `2px solid var(--fwti-ink)` · radius: `10px` · padding: `10-12px 14px`
+- shadow 默认: `3px 3px 0 var(--shadow-ink)`
+- letter 方块 24×24：色按**选项序**固定轮转（A=GR 柠檬 / B=DZ 薰紫 / C=DR 薄荷；避珊瑚留给 CTA）+ `2px solid var(--fwti-ink)` + radius 6px
+- option text: body 13-15px weight 600
+- **hover（未选中）**: bg `var(--fwti-bg-card)`（蜜桃）· 影不变
+- **selected**: bg = 该选项的 letter 同色 pastel · `transform: translate(2px,2px)` · `box-shadow: 1px 1px 0 var(--shadow-ink)` · 右侧挂 `+2 ZR` 式**维度**徽章（由题目 dimension 决定文字；`bg: var(--fwti-ink); color: 对应维度家族色; radius: 999px; mono 9px 900`）
+- letter 方块在 selected 时: bg `var(--fwti-ink)`, color `#FFE08A`
+- focus: `outline: 3px solid var(--fwti-accent); outline-offset: 2px`
 
-**Advice Block (`.advice-section`)**
-- Background: `#f4f4f5`
-- Border: `1px solid #e4e4e7`
-- Border Radius: `24px`
-- Padding: `56px 44px`
+### 4.5 Personality Card (home grid / result hero 通用)
 
-### Navigation (`.top-nav`)
+- bg: `var(--fwti-bg-card)` 蜜桃纸 · border `2px solid var(--fwti-ink)` · radius 12px · shadow `4px 4px 0 var(--shadow-ink)`
+- 顶部 washi tape 1 条（family 色或对比色）
+- 左: portrait 缩略块 56×56 或 hero 140px（见 §4.3）
+- 右: name display 15-26px 900 / 代码+废物指数 mono 10-11px / 金句框 `bg: #fff; border: 2px solid var(--fwti-ink); radius: 8px; shadow: 3px 3px 0; padding: 10px` / 四维 chip 行
 
-- Position: `sticky`, `top: 0`, `z-index: 50`
-- Background: `rgba(255, 255, 255, 0.92)` (light) / `rgba(9, 9, 11, 0.92)` (dark)
-- Backdrop Filter: `saturate(160%) blur(10px)`
-- Border Bottom: `1px solid #e4e4e7`
-- Inner max-width: `1120px`, padding: `14px 32px`
+### 4.6 Dimension Bar (四维条)
 
-### Quiz Option (`.quiz-opt`)
+容器 card: `#fff` · border · radius 12px · shadow 4px。
 
-- Background: `#f4f4f5`
-- Border: `2px solid #e4e4e7`
-- Border Radius: `12px`
-- Padding: `12px 16px`
-- Font: 14px, weight 400, line-height 1.55
-- Selected: border-color `#33a474`, background `#f4f4f5`, box-shadow `0 0 0 1px rgba(51, 164, 116, 0.20)`
-- Hover: border-color `rgba(51, 164, 116, 0.35)`, box-shadow `0 2px 12px rgba(0, 0, 0, 0.04)`
-- Option badge: 26×26px circle, bg `#52525b` → `#33a474` when selected
+每行：
+- label 行 meta 10px weight 800：`G 主动` ← → `D 蹲等`
+- 槽底 bar: `height: 12-14px; background: var(--fwti-bg-soft); border: 1.5px solid var(--fwti-ink); border-radius: 999px; overflow: hidden; position: relative`
+- 中线: `::before { position:absolute; left:50%; top:0; bottom:0; width:1px; background: var(--fwti-ink); opacity: 0.4 }`
+- fill: 从中心双向发散（保留 v1 逻辑），色 = 对应家族 pastel，右沿 `1.5px solid var(--fwti-ink)`
 
-### Submit Bar (`.submit-bar`)
+### 4.7 Modal (`.preview-modal`, `.share-image-dialog`)
 
-- Position: `fixed`, `bottom: 0`, `z-index: 40`
-- Background: `rgba(255, 255, 255, 0.96)` / `rgba(9, 9, 11, 0.96)` dark
-- Backdrop Filter: `saturate(160%) blur(10px)`
-- Border Top: `1px solid #e4e4e7`
-- Progress Track: 6px height, border-radius `999px`, fill animates at `0.4s cubic-bezier(0.22, 0.61, 0.36, 1)`
+- bg: `var(--fwti-bg)`（奶油）· border `2.5px solid var(--fwti-ink)` · radius 14px · shadow `6px 6px 0 var(--shadow-ink)` · padding 20-24px
+- max-width: 520px（preview）/ 420px（share）
+- backdrop: `rgba(10, 10, 10, 0.55)`，不 blur
+- close 按钮：absolute top-right 独立圆章 24×24 · bg `#fff` · border 2px · shadow 2px 位移
+- 入场：`from { opacity:0; transform: translateY(8px) scale(0.98); } to { full; }` · `0.22s cubic-bezier(0.16,1,0.3,1)`
 
-### Modal (`.preview-modal`, `.share-image-dialog`)
+### 4.8 Top Navigation (`.top-nav`)
 
-- Background: `#ffffff` / `#18181b` dark
-- Border: `1px solid rgba(0, 0, 0, 0.08)` / `rgba(255, 255, 255, 0.10)` dark
-- Border Radius: `12px`
-- Padding: `32px`
-- Max Width: `520px` (preview modal), `400px` (share dialog)
-- Box Shadow: `0 24px 48px -12px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.04)`
-- Backdrop: `blur(6px)`, background `rgba(10, 10, 10, 0.55)`
-- Entry animation: `cubic-bezier(0.16, 1, 0.3, 1)` over `0.22s`, from `translateY(8px) scale(0.98)`
+- position: sticky · top: 0 · z: 50
+- bg: `var(--fwti-bg)` **实色**（非磨砂）· border-bottom: `2px dashed var(--fwti-ink)`
+- inner: max-width 1120 · padding `12-14px 24-32px` · flex
+- logo: 珊瑚浓 bg + white "FWTI" · border 2px · radius 8px · shadow 3px 位移
+- 主题切换：圆章 24×24 · bg `#fff` · border · shadow 2px · 内容 `☀` / `☾`
+- 废除 v1 的 `backdrop-filter` — 磨砂不匹配 brutalist 贴纸语言
 
-### Chips / Badges
+### 4.9 Submit Bar (Quiz 底栏)
 
-**Code Chip (`.preview-modal-code`)**
-- Padding: `3px 8px`
-- Border Radius: `6px`
-- Font: SF Mono, 11px, weight 600, letter-spacing 0.06em
-- Background: `color-mix(in srgb, var(--tile-color) 10%, transparent)`
-- Border: `1px solid color-mix(in srgb, var(--tile-color) 24%, transparent)`
+- 不再 fixed 磨砂；改为 page 底部 `2px dashed var(--fwti-ink)` 虚线分隔 + 按钮 + meta 一行
+- 进度条：单独在顶部（§4.10）
 
-**Tag Chip (`.quiz-item-tag`, `.share-image-chip`)**
-- Padding: `4px 10px`
-- Border Radius: `999px`
-- Font: Inter, 11px, weight 600, letter-spacing 0.10em, uppercase
-- Background: `#f4f4f5`, border: `1px solid #e4e4e7`
+### 4.10 Progress Bar
 
-**Hidden Badge (`.hidden-badge`)**
-- Background: `var(--fwti-accent)`
-- Text: `#ffffff`
-- Padding: `6px 14px`
-- Border Radius: `999px`
-- Font: 11px, weight 700, letter-spacing 0.14em, uppercase
+- 容器: `height: 10px; background: #fff; border: 2px solid var(--fwti-ink); border-radius: 5px; overflow: hidden`
+- fill: `background: var(--fwti-accent); border-right: 2px solid var(--fwti-ink)` · `transition: width 0.4s cubic-bezier(0.22,0.61,0.36,1)`
+- 右侧挂 `19 / 33` mono badge
 
-**Legend Chip (`.legend-chip`)**
-- Padding: `7px 13px 7px 11px`
-- Border Radius: `999px`
-- Background: `#f4f4f5`, border: `1px solid #e4e4e7`
-- Font: 12px, weight 500
-- Hover: box-shadow `0 2px 10px rgba(0, 0, 0, 0.08)`, border-color `#d4d4d8`
+### 4.11 Chips / Badges
 
-### Logo Mark (`.logo-mark`)
+三式：
 
-- Width/Height: `22px × 22px`
-- Border Radius: `6px`
-- Background: `#33a474`
-- Pseudo `::after`: inset `6px`, border-radius `2px`, background `#ffffff` (white inner square)
+- **白 chip**：`bg: #fff; border: 1.5px solid var(--fwti-ink); radius: 999px; padding: 2-3px 8-10px; font: body 9-10px 700`
+- **家族 chip**：同上但 bg 换家族 pastel
+- **黑底荧光 chip**：`bg: var(--fwti-ink); color: 家族色（GR/GZ/DR 任选）; border: 1.5px solid var(--fwti-ink); radius: 999px; mono 9-10px 900`。用于 隐藏 badge、维度 +2 标记、强调 meta
 
-### Catchphrase (`.catchphrase`)
+### 4.12 Logo Mark
 
-- Font: Red Hat Display, 20px, weight 500
-- Padding: `24px 28px`
-- Background: `#f4f4f5`
-- Border Left: `4px solid var(--fwti-accent)`
-- Border Radius: `0` (intentionally flush)
+- 22×22px · bg: `#FF4D6D` · border: `2px solid var(--fwti-ink)` · radius: 6px · shadow: `2px 2px 0 var(--shadow-ink)`
+- `::after` 内方块：inset 6px · bg `#fff` · radius 2px
+- 文字 "FWTI"：display 18px 900 + `.02em` tracking（所有场景都在盒内而非盒外）
 
 ---
 
 ## 5. Layout Principles
 
-**Base Spacing Unit**: `8px`
+**Base unit**: `8px`。Spacing 尺度延用 v1 的 xs–10xl 区间。
 
-**Key Spacing Scale** (used throughout the CSS):
-
-| Token | Value |
-|---|---|
-| xs | 4px |
-| sm | 8px |
-| sm+ | 10px |
-| md | 12px |
-| md+ | 14px |
-| base | 16px |
-| lg | 20px |
-| xl | 24px |
-| 2xl | 28px |
-| 3xl | 32px |
-| 4xl | 40px |
-| 5xl | 44px |
-| 6xl | 56px |
-| 7xl | 64px |
-| 8xl | 72px |
-| 9xl | 80px |
-| 10xl | 96px |
-
-**Max-Width Containers:**
+**Max-Width Containers** — 延用 v1（纯换皮不改容器宽度）：
 
 | Context | Max Width |
 |---|---|
 | Top nav inner | 1120px |
 | Preview grid | 1280px |
-| Home tips | 1000px |
-| Preview legend | 920px |
 | Quiz list | 720px |
 | Quiz options | 620px |
 | Result container | 760px |
-| Submit bar inner | 960px |
 | Hero inner | 820px |
-| Modal | 520px |
+| Modal (preview) | 520px |
 
 **Whitespace Philosophy:**
 
-**Breathing Room at Scale.** The home hero takes `72px 32px 120px` padding — generous vertical space that gives the large white-on-green type room to breathe. The bottom overhang `120px` creates the tip-card float overlap, a spatial trick that layers sections without a visible seam.
-
-**Vertical Rhythm via Gap.** The quiz list uses `gap: 64px` between questions — approximately 8 baseline units of breathing room per item. This encourages deliberate reading over rapid scanning, matching the quiz's "slow down and reflect" tone.
-
-**Section Breathing.** The result container uses `gap: 72px` between all sections — nearly `9rem`. This white space functions as a divider without a visible line; it tells readers each block is its own thought.
-
-**Content-Width Discipline.** Body text blocks (`.result-desc`, `.refs-intro`) have `max-width: 620–680px` regardless of container width. This enforces ~70–80 characters per line for CJK prose, matching established typographic practice.
+- **Breathing room 不降**：v2 贴纸感不是靠拥挤取得，是靠粗边 + 硬影。section gap 仍走 `64-72px`（约 8-9 baseline），保留"慢读"节奏。
+- **Card internal padding 降**：从 v1 的 `26-32px` 降到 `12-18px`——粗边 + 阴影已经给了视觉分量，内边不需再撑。
+- **Washi tape 位置稳定**：每个 portrait 框的胶带位置 / 角度不是真随机，按 code (`GZNY` 等) 的 hash 生成，保证同一个代码在不同页面看起来一致。
 
 ---
 
 ## 6. Depth & Elevation
 
+v2 **废除 v1 的"flat at rest, shadow on hover"**，改为**贴纸常驻影，交互变位移**。
+
 | Level | Treatment | Use |
 |---|---|---|
-| 0 — Flat | `border: 1px solid #e4e4e7` | Default cards, tip cards, quiz options, all nav |
-| 1 — Subtle Lift | `0 2px 12px rgba(0, 0, 0, 0.04)` | Quiz option hover |
-| 2 — Chip Hover | `0 2px 10px rgba(0, 0, 0, 0.08)` | Legend chip hover |
-| 3 — Card Hover | `0 12px 28px rgba(0, 0, 0, 0.08)` | Match card hover |
-| 4 — Tile Hover | `0 18px 40px rgba(0, 0, 0, 0.08)` | Preview personality tile hover |
-| 5 — Tip Card | `0 8px 32px rgba(0, 0, 0, 0.08)` | Tip cards resting state (float above hero) |
-| 6 — Button Green | `0 4px 16px rgba(51, 164, 116, 0.25)` | Primary green CTA |
-| 7 — Button Hover | `0 6px 20px rgba(51, 164, 116, 0.35)` | Primary green CTA hover |
-| 8 — Modal | `0 24px 48px -12px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.04)` | All dialogs and share modals |
-| 9 — Share Preview | `0 8px 28px rgba(0, 0, 0, 0.12)` | Share image preview thumbnail |
-| Focus (Accessibility) | `2px solid var(--fwti-accent, #33a474)` outline, offset 2–3px | All keyboard-focusable elements |
+| 0 — Card resting | `2px solid var(--fwti-ink) + 4px 4px 0 var(--shadow-ink)` | 所有 card / button / chip 默认 |
+| 1 — Portrait frame | `2.5px solid + 5px 5px 0` | portrait 框稍厚一档 |
+| 2 — Modal | `2.5px solid + 6px 6px 0` + backdrop | 比普通 card 深 2px 位移，示层级 |
+| H — Hover (card) | `translate(-2px,-2px); box-shadow: 6-7px 6-7px 0` | "贴纸翘起" |
+| H — Hover (button) | `translate(1px,1px); box-shadow: 3px 3px 0` | 轻微按下预告 |
+| A — Active (button/option) | `translate(4px,4px); box-shadow: 0 0 0` | 完全压下 |
+| S — Selected (quiz option) | `translate(2px,2px); box-shadow: 1px 1px 0` + 家族色底 | 半压状态 + 换色 |
+| Focus | `outline: 3px solid var(--fwti-accent); outline-offset: 2px` | 键盘 focus 全站一致 |
 
-**Shadow Philosophy:**
-
-FWTI treats shadow as a verb, not a noun — it appears to communicate *interactivity* (hover) or *separation* (modal), never as mere decoration. The system avoids decorative drop shadows on static elements; resting cards are distinguished only by their `1px` border. This keeps the surface language clean while making hover lifts feel satisfyingly tactile. In dark mode, shadow opacity scales up significantly (key from `0.18` to `0.55`) to maintain perceived depth against the near-black background, where light borders lose contrast.
+**Shadow philosophy**：影不是 decoration，是**贴纸印在纸上的位移痕迹**——硬边、无 blur、纯色，始终存在。hover/active 通过"把印挤回去"传达交互，不通过"加更大的模糊光晕"。这与 v1 完全相反。
 
 ---
 
@@ -375,27 +275,24 @@ FWTI treats shadow as a verb, not a noun — it appears to communicate *interact
 
 ### Do's
 
-- **Do** use `--fwti-green` (`#33a474`) as the only saturated accent on neutral pages; let the green hero carry the brand weight.
-- **Do** apply `backdrop-filter: saturate(160%) blur(10px)` on all floating bars (nav, submit bar) to maintain visual connection between bar and content below.
-- **Do** use `border-radius: 999px` for all pill elements (badges, progress bars, tags, chips) and `border-radius: 20px` for personality tile cards.
-- **Do** maintain the `1px solid #e4e4e7` border on all resting surfaces — this is the primary differentiator between card and background, not shadow.
-- **Do** use `translateY(-4px)` hover lifts on clickable cards to signal interactivity; pair with the `var(--fwti-preview-tile-shadow)` shadow.
-- **Do** use `cubic-bezier(0.16, 1, 0.3, 1)` for modal entry animations and `cubic-bezier(0.22, 0.61, 0.36, 1)` for progress bar fills.
-- **Do** override `--fwti-accent` and `--fwti-accent-tint` via `data-family` or inline style on the result container — the entire page theme follows from this single variable pair.
-- **Do** use the zinc neutral family (`#18181b / #52525b / #71717a`) for text hierarchy — never generic gray.
-- **Do** ensure focus rings are always `2px solid var(--fwti-accent)` with a minimum `outline-offset: 2px`.
-- **Do** use `font-feature-settings: 'palt'` globally to tighten CJK spacing.
+- **Do** 永远配套使用 `2px solid var(--fwti-ink)` + `4px 4px 0 var(--shadow-ink)` —— 二者是贴纸语法的基础对仗，丢一个另一个也失效。
+- **Do** 在 pastel 色块里强制写 `color: #1a1a1a`（或 `var(--on-pastel)`）。pastel 是"纸"，字是墨，永不翻。
+- **Do** 把 family 语义通过 `data-family` CSS var 注入单变量 `--family-color`，所有 family-aware 组件只读这个变量。
+- **Do** washi 胶带按 code hash 取位置 / 角度 / 色，保证同代码稳定。
+- **Do** 按钮交互走位移 3 态：rest `4px 4px` → hover `translate(1,1) + 3px 3px` → active `translate(4,4) + 0 0`。
+- **Do** dark mode 只改 `--fwti-bg` / `--fwti-bg-soft` / `--fwti-ink` / `--shadow-ink` 四个墙变量；卡内部不改。
+- **Do** display 字用 Archivo Black + NSS Heavy 双配，`font-synthesis: none`。
 
 ### Don'ts
 
-- **Don't** introduce new saturated colors outside the four family palette (`#F25E62`, `#E4AE3A`, `#88619A`, `#33A474`) and the ten hidden personality accents — each new color dilutes the system's quadrant meaning.
-- **Don't** use `box-shadow` on resting (non-hover) cards other than the tip cards floating over the hero; it breaks the flat/lift contrast hierarchy.
-- **Don't** set `border-radius` below `6px` on interactive elements — the minimum is `6px` (small buttons, code chips) to match the rounded, approachable tone.
-- **Don't** use font-weight values of `800` or `900` — the system caps at `700` for display type. Over-bold headings clash with the self-deprecating tone.
-- **Don't** use `blur()` backdrop filter on anything other than the two bars (nav, submit) and modal backdrops (`blur(6px)`) — overuse degrades performance on older mobile devices.
-- **Don't** break the `max-width` constraints on text blocks — `.result-desc` must stay ≤ `620px` wide; CJK prose above ~35em per line becomes hard to track.
-- **Don't** remove the spring `cubic-bezier(0.16, 1, 0.3, 1)` from modal entry in favor of linear or `ease-out` — the spring feel is a deliberate character moment.
-- **Don't** use color for the sole indicator of a selected quiz option — the `2px solid #33a474` border + `box-shadow: 0 0 0 1px rgba(51, 164, 116, 0.20)` double-ring is the required selection treatment.
+- **Don't** 给 card 加任何 blur 阴影（`rgba blur`），破坏 brutalist 契约。
+- **Don't** 在 hover 增加阴影，应位移或换偏移量。
+- **Don't** 把 `backdrop-filter: blur` 用在 nav / submit bar —— 磨砂与贴纸语言冲突。只 modal backdrop 保留。
+- **Don't** 引入第五个 family 饱和色。四色 + 珊瑚浓 CTA + 墨，已经是全调色板。hidden 家族继续复用这 6 色或走黑底荧光变体。
+- **Don't** 用 `font-weight` 介于 700-900 之间的值。display 就 900，body 就 500-700，不要 750。
+- **Don't** 在 pastel 贴纸内部写 `color: var(--fwti-ink)` —— 深色模式下会翻白，贴纸变空。
+- **Don't** 让 pastel 底不配黑边。赤裸 pastel 块在奶油底上会化，必须 2px 描线。
+- **Don't** 把 washi 胶带当真随机 —— 每次渲染位置变会闪。要按稳定 seed 算。
 
 ---
 
@@ -403,54 +300,73 @@ FWTI treats shadow as a verb, not a noun — it appears to communicate *interact
 
 | Breakpoint | Width | Key Changes |
 |---|---|---|
-| Desktop | > 1100px | 4-column personality grid; nav padding `14px 32px`; hero title 56px |
-| Tablet Large | ≤ 1100px | Preview grid gap reduces to `16px`; portrait images shrink to 160px |
-| Tablet | ≤ 900px | Hero title collapses to 44px; portrait to 140px |
-| Mobile | ≤ 720px | 2-col personality grid; match grid → 1 col; nav padding → `12px 20px`; hero title 36px; result name 44px; quiz question 21px; tip cards switch to horizontal scroll-snap strip |
-| Mobile Small | ≤ 460px | Hero title 30px; result name 36px; result eng 38px; quiz question 19px; portrait 130px |
+| Desktop | > 1100px | 4 列 grid；nav `14px 32px`；home hero 72px |
+| Tablet | ≤ 900px | home hero 50px；portrait frame 160px |
+| Mobile | ≤ 720px | 2 列 grid；result hero 垂直堆叠（portrait 上文本下）；nav `12px 20px`；home hero 40px |
+| Small | ≤ 460px | home hero 32px；result name 28px；quiz 题干 20px；shadow 降到 `3px 3px 0` 省空间 |
 
-**Collapsing Strategy:**
+**Collapsing strategy**：
 
-The four-column personality grid hard-collapses to two columns at 720px (not a fluid column approach) — this preserves the card proportions and keeps portrait images readable. The tips section switches from a CSS Grid to a horizontal flex with `scroll-snap-type: x mandatory` and `scroll-padding-inline: 20px`, letting the three cards horizontalize into a swipe carousel on mobile without JavaScript. The `prefers-reduced-motion` media query disables the scroll-snap on this strip.
+- 4 列硬切 2 列，不走流体 —— 保持 tile 比例与黑边厚度对齐。
+- result hero 在 ≤ 720 切成"portrait（60%宽居中）→ 名称 → 金句 → 四维 → 配对"的纵向流，portrait 右上 badge 仍外突 `-10px`。
+- share 图预览在 modal 内永远固定 300×420 canvas 比例，不随 viewport 变（要导出 PNG 稳定）。
 
-**Image Behavior:**
-
-Portrait images use `aspect-ratio: 1/1` containers with a CSS mask (`radial-gradient(circle at 50% 48%, #000 45%, transparent 68%)`) that vignettes the circular portrait into the card background — no `<img>` border-radius or overflow clip needed. On the result hero, the portrait is 320px desktop → 240px mobile, with a CSS-only radial glow pseudo-element (`::before`) that adapts to `--fwti-accent-tint`.
-
-**Touch Target Sizes:**
-
-All interactive elements have a minimum touch target of 38×38px (`.theme-toggle`: exactly 38×38px). Quiz option buttons are full-width with `12px 16px` padding, creating a comfortable `44px+` height. The legend chip buttons are `7px 13px` padding — slightly below the recommended 44px minimum on very small screens but mitigated by the large text and spacing around them.
+**Touch targets**：所有 button / option / tile 最小高 44px（实际加上 `4px` 影子区 = 可视 48px）。
 
 ---
 
-## 9. Agent Prompt Guide
+## 9. Decisions & Rejected Alternatives
+
+v2 是一组 4 轴决策（D2 + P1 + PT1 + IA1），脑暴中排除了：
+
+- **纯甜 D1**（饱和粉 + emoji 堆砌）：甜到底与"废物"自嘲违和，弃之。
+- **复古 D3 手账**（衬线中文 + 旧报纸）：文艺但与 sticker 基因冲突，且中文衬线在 hero 字号下 rendering 不稳。
+- **单色 P2**（奶油 + 黑 + 单珊瑚，family 用符号 ◇◈◆◊）：品牌更整但丢了 FWTI 四家族的颜色锚点，用户无法靠色记忆家族。
+- **饱和 P3**（heavy coral / grape / jade）：brutalist 正典但 4 饱和色 + 粗黑堆砌，在移动端阅读负担大。
+- **重绘 PT3**（24 张重跑 MJ/DALL·E）：整得但周期 + 生图一致性风险高。PT1 用框装完成"融合"。
+- **IA 重构 IA2/IA3**（一题一屏 / 杂志隐喻）：互动更强但需改 Vike 路由 + state 层，脱离"换皮"范围。保留作未来 milestone。
+
+---
+
+## 10. Agent Prompt Guide
 
 ### Example Component Prompts
 
-- "Create a personality result hero section. Background white `#ffffff`. Central portrait image 320px wide with a radial gradient glow behind it using `rgba(51, 164, 116, 0.08)`. Above the image: eyebrow text in Inter 12px weight 600, letter-spacing 0.14em, all-caps, color `#52525b`, saying '测试完成 · 你的恋爱人格是'. Below image: a Chinese heading at 64px Red Hat Display weight 700, line-height 1.05, letter-spacing -1.28px (-0.02em), color `#18181b`. Below heading: large English text 68px Red Hat Display weight 700, line-height 1.20, color `#33a474`, uppercase, characters spaced in fixed 1em-wide cells. Below that: an italic tagline at 19px Inter weight 400, line-height 1.55, color `#52525b`. At the bottom: a pill badge with background `#f4f4f5`, border `1px solid #e4e4e7`, border-radius 999px, padding `12px 22px`, containing a '废物指数' label at 13px color `#52525b` and 5 dot indicators 9px circles colored `#d4d4d8` (empty) or `#33a474` (filled)."
+- **Home hero**："Create a home hero. Outer wrapper: bg `#FFF8F0`, border `2px solid #1a1a1a`, radius 12px, shadow `4px 4px 0 #1a1a1a`, padding `24px`. Top strip (nav): logo chip bg `#FF4D6D` text white `FWTI` border `2px solid #1a1a1a` radius 8px shadow `3px 3px 0 #1a1a1a` font Archivo Black 18px; right side `测试 / 历史 / ☀` Inter 13px 700. Divider `2px dashed #1a1a1a`. Hero body: title '恋爱废物人格测试' Archivo Black + Noto Sans SC Heavy 56-72px weight 900 line-height 0.98 letter-spacing -1px; subtitle Inter 500 14px color `#52525b`, containing `<mark>` highlight with bg `#FFE08A` border `1.5px solid #1a1a1a` padding `1px 4px`. A washi tape strip absolute positioned behind title: `width: 64px; height: 16px; background: rgba(255,220,140,0.8); transform: rotate(-4deg); top: 14px; left: 18%`. CTA button primary coral + outline button secondary white, both `2px 黑边 + 4px 4px 0` 影. Below: 4×n personality tile grid, each tile bg 家族 pastel, border `2px #1a1a1a`, radius 8px, shadow `3px 3px 0 #1a1a1a`, padding 8px."
 
-- "Create a personality card grid tile. Card size ~280px, border-radius 20px. Background: linear-gradient from `rgba(242, 94, 98, 0.08)` at top to white `#ffffff` at 72% down. Border `1px solid #e4e4e7`. Padding `26px 18px 22px`. Centered content: a circular-vignette portrait image 180px wide, then a row with a code label 11px Red Hat Display weight 700 letter-spacing 0.24em in `#F25E62` and an English name 10px Inter weight 600 letter-spacing 0.20em uppercase in `#71717a`. Below: Chinese type name at 20px Red Hat Display weight 700 color `#18181b` letter-spacing -0.01em. Below: italic tagline 12px Inter line-height 1.55 color `#52525b`, max-width 220px centered. On hover: `transform: translateY(-4px)`, border-color `#F25E62`, box-shadow `0 18px 40px rgba(0, 0, 0, 0.08)`, transition 0.25s ease."
+- **Quiz option (selected)**: "Full width button. bg `#FFB4B8`, border `2px solid #1a1a1a`, radius 10px, padding `10px 14px`, box-shadow `1px 1px 0 #1a1a1a`, transform `translate(2px, 2px)`. Flex row gap 10px: 24×24 letter square bg `#1a1a1a` text `#FFE08A` border `2px solid #1a1a1a` radius 6px font Archivo Black 11px, content 'B'; then option text Inter 13px weight 600 color `#1a1a1a`; then margin-left auto, a pill badge bg `#1a1a1a` color `#A8E6C9` padding `2px 8px` radius 999px JetBrains Mono 9px 900 content '+2 ZR'."
 
-- "Create a quiz option button. Full width, background `#f4f4f5`, border `2px solid #e4e4e7`, border-radius 12px, padding `12px 16px`. Layout: flex row, align-items flex-start, gap 12px. Left: a 26×26px circle with background `#52525b` and white 12px Red Hat Display weight 700 letter label centered. Right: option text at 14px Inter weight 400, line-height 1.55, color `#18181b`. When selected: border-color `#33a474`, border-width 2px, background `#f4f4f5`, box-shadow `0 0 0 1px rgba(51, 164, 116, 0.20)`, circle background changes to `#33a474`. Hover (unselected): border-color `rgba(51, 164, 116, 0.35)`, box-shadow `0 2px 12px rgba(0, 0, 0, 0.04)`. Transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease."
-
-- "Create a personality detail modal. Width 100%, max-width 520px, max-height min(88vh, 820px), overflow-y auto. Background `#ffffff`, border-radius 12px, padding 32px, border `1px solid rgba(0, 0, 0, 0.08)`, box-shadow `0 24px 48px -12px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.04)`. Modal entry animation: from `opacity: 0; transform: translateY(8px) scale(0.98)` to full, 0.22s, `cubic-bezier(0.16, 1, 0.3, 1)`. Close button: absolute top-right 16px/16px, 32×32px, border-radius 6px, transparent bg, hover bg `rgba(0, 0, 0, 0.06)`. Header: centered column, Chinese name 28px Red Hat Display weight 700 letter-spacing -0.02em, tagline 14px italic color `#71717a`. Code chip: 3px 8px padding, border-radius 6px, SF Mono 11px weight 600, background and border use `color-mix(in srgb, #F25E62 10%, transparent)` and `color-mix(in srgb, #F25E62 24%, transparent)`. Divider: 1px solid `rgba(0, 0, 0, 0.08)`, margin 20px 0. Body text: 14px Inter line-height 1.70 color `#3f3f46`."
-
-- "Create the FWTI top navigation bar. Position sticky, top 0, z-index 50. Background `rgba(255, 255, 255, 0.92)`, backdrop-filter `saturate(160%) blur(10px)`, border-bottom `1px solid #e4e4e7`. Inner: max-width 1120px, margin auto, padding `14px 32px`, flex row align-center justify-space-between, gap 16px. Left: logo mark (22×22px border-radius 6px background `#33a474`, with a white inner square inset 6px border-radius 2px) + 'FWTI' text in Red Hat Display 18px weight 700 color `#18181b` letter-spacing 0.02em + meta badge '自嘲系列 · 娱乐测试' in Inter 13px color `#52525b` letter-spacing 0.02em. Right: GitHub link Inter 14px weight 500 color `#52525b`, theme toggle button 38×38px border-radius 8px border `1px solid #e4e4e7` background `#f4f4f5`. All transitions 0.15s ease. Focus visible: `outline: 2px solid #33a474`, outline-offset 2px."
+- **Result hero with portrait frame**: "Flex row gap 14px. Left: 140px portrait frame. bg `#FFB4B8`, border `2.5px solid #1a1a1a`, radius 14px, shadow `5px 5px 0 #1a1a1a`, padding 10px. Top washi tape `width 46px height 13px background rgba(255,220,140,0.9) transform rotate(-4deg)` absolute left 10px top -7px. Top-right family badge absolute -10px/-10px: 30×30 circle bg `#1a1a1a` color `#FFE08A` border `2px solid #1a1a1a` JetBrains Mono 10px 900 content 'GZ'. Inside portrait: aspect 1/1 background linear-gradient peach, border `1.5px solid #1a1a1a`, radius 8px, contains the portrait webp centered. Right column: meta line JetBrains Mono 10px color `#71717a` content 'GZNY · 废物指数 ★★★'; name Archivo Black + NSS 900 26px line-height 1.05 content '心动急先锋'; catchphrase block bg `#FFE5D4` border `2px solid #1a1a1a` radius 8px shadow `3px 3px 0 #1a1a1a` padding 10px font 12px line-height 1.5 content '君之废程，当属可救。'; chip row with 4 white chips + 1 black hidden chip (`bg #1a1a1a color #FFE08A`)."
 
 ### Iteration Guide
 
-1. **Always anchor the accent to a family color.** When building a result or personality component, first establish `--fwti-accent` and `--fwti-accent-tint`. Every accent-aware CSS variable (`border`, `glow`, `selected state`, `bullet`, `label`) derives from these two values — do not hardcode the hex.
+1. **Anchor every family-aware component to `--family-color`.** Set it via `data-family="gz|gr|dz|dr"` on the container; all downstream component styles should read `var(--family-color)` and `color-mix(in srgb, var(--family-color) 60%, white)` for softer tints.
+2. **Always pair border + shadow.** `2px solid var(--fwti-ink)` never goes alone; always add `4px 4px 0 var(--shadow-ink)`. If a component feels "too light", increase shadow offset (5px, 6px), never add blur.
+3. **Interaction via transform, not opacity.** Button press, option select, card hover — all move on X/Y by 1-4px and adjust shadow complementarily. Opacity changes only for disabled state.
+4. **Three chip modes.** White / family-pastel / black-with-neon. Never introduce a 4th chip background.
+5. **Pastel 色块内文字锁黑。** 任何 pastel 底上的字、chip、letter-square 都必须 `color: #1a1a1a`，且与主题无关。这是 dark mode 策略的基础。
+6. **Decorations are grammar, not garnish.** 每屏 washi 胶带 ≤ 3 条；highlight `<mark>` ≤ 3 处；dashed divider ≤ 2 条。超过就显得杂乱。
+7. **Motion**：`0.15s ease` 默认。位移 `translate(Xpx, Ypx)` + 阴影互补，永不脱钩。modal 入场保留 v1 的 spring。
+8. **Typography weight 不过渡。** display = 900，body = 500-700，mono = 500-700。不要 800，不要 450。
 
-2. **Respect the border-radius tier system.** Pills (`999px`) for inline flow elements, `20–24px` for large standalone cards, `12–16px` for modals and small panels, `6–8px` for small interactive elements. Mixing tiers within a single component breaks the spatial hierarchy.
+---
 
-3. **Transitions are always `0.15s ease` for state changes.** Only deviate for: hover lifts on cards (`0.2–0.25s ease`), progress fills (`0.4s cubic-bezier`), modal entries (`0.22s cubic-bezier(0.16,1,0.3,1)`), and dimension bars (`0.8s cubic-bezier`). Do not use `0.3s` or `ease-in-out` — they read as sluggish.
+## 11. Migration Checklist (from v1)
 
-4. **Surface distinction requires a border, not a shadow.** In the default (non-hover) state, every card-on-page surface is differentiated by `1px solid #e4e4e7` — not shadow. Adding resting shadows to new cards destroys the flat/lift contract.
+纯换皮（IA1），工程落地分以下原子改动：
 
-5. **Dark mode requires semantic variable use.** Never hardcode `#18181b` or `#f4f4f5` as literal colors — use `--fwti-bg-soft`, `--fwti-text-dark`, etc. The entire theme swap happens through variable override; literal hex values do not update.
+- [ ] `src/global.css` 重写 `:root` tokens（color / font / shadow / radius 四组变量）
+- [ ] 新增 `@font-face` / Google Fonts link：Archivo Black + JetBrains Mono + Noto Sans SC 900；可废除 Red Hat Display 引用
+- [ ] 替换全局 `--fwti-border` 用法：`1px solid #e4e4e7` → `2px solid var(--fwti-ink)`
+- [ ] 替换所有 resting card shadow：加 `4px 4px 0 var(--shadow-ink)`
+- [ ] 引入 `--family-color` data-attr 体系（替换 v1 的 `--fwti-accent` / `--fwti-accent-tint` 双变量）
+- [ ] `PersonalityIcon.tsx` / `Portrait.tsx` 包装外层 frame + washi tape + family badge
+- [ ] `QuizPage.tsx` option 样式、进度条、submit bar 按 §4.4 / §4.10 / §4.9 重写
+- [ ] `ResultPage.tsx` hero + 四维条 + 配对卡 + 行动按钮按 §4.3 / §4.5 / §4.6 重写
+- [ ] `Nav.tsx` 去 `backdrop-filter`，改实色 + dashed border
+- [ ] `PreviewModal.tsx` / `ShareImageModal.tsx` 按 §4.7 重写 shadow 层级
+- [ ] `ShareImageModal.tsx` canvas 导出：重写 draw 逻辑对应新 palette + 黑边 + 位移影（`ctx.fillRect` 叠两次模拟硬影）
+- [ ] dark mode `[data-theme="dark"]` block：只改 `--fwti-bg` / `--fwti-bg-soft` / `--fwti-ink` / `--shadow-ink`；卡内部 token 不翻
+- [ ] 保留：路由、`logic/*`、`data/*`、portrait webp 文件、codec、scoring、answers state、telemetry
 
-6. **Eyebrow labels before section headings.** Every content section should begin with an eyebrow (`11–12px, weight 600, letter-spacing 0.14–0.16em, all-caps, color --fwti-text-soft`) followed by the section title (`Red Hat Display, 34px, weight 700`). This two-level pattern is the system's primary content hierarchy marker.
-
-7. **CJK-English pairing rule.** When a text element mixes CJK and English (e.g., section eyebrows like '维度分析 · Dimensions'), use Inter for the whole string — `Noto Sans SC` handles CJK glyphs automatically through the font stack fallback. Do not set separate font-family values for mixed strings.
-
-8. **Interactive elements must pass the 38px minimum.** Ensure all buttons, chips, and tiles meet at least 38px in height on mobile. Use generous padding rather than fixed heights to let CJK content wrap gracefully on small screens.
+不在本次 scope：quiz 单题分屏、result 滑动叙事、portrait 重绘、zine 信息架构。这些作未来 v3 保留。

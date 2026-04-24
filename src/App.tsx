@@ -6,6 +6,7 @@
  * 不要在本文件内加实现——请落到对应的组件或 state 文件。
  */
 
+import './fonts';
 import './global.css';
 
 export { Layout } from './components/Layout';
