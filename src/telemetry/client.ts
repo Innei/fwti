@@ -29,10 +29,10 @@ type TelemetryPayload = {
   hashVersion?: number;
   source?: 'fresh_submit' | 'share_link' | 'history_revisit' | 'unknown';
   score?: {
-    GD: number;
-    ZR: number;
-    NL: number;
-    YF: number;
+    C: number;
+    R: number;
+    A: number;
+    S: number;
   };
   answers?: Array<{
     questionId: number;
@@ -178,10 +178,10 @@ function postEvent(payload: TelemetryPayload, useBeacon = false): void {
     typeof navigator.sendBeacon === 'function'
   ) {
     const blob = new Blob([body], { type: 'application/json' });
-    navigator.sendBeacon(`${endpoint}/api/events`, blob);
+    navigator.sendBeacon(`${endpoint}/api/v3/events`, blob);
   }
 
-  void fetch(`${endpoint}/api/events`, {
+  void fetch(`${endpoint}/api/v3/events`, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
@@ -368,13 +368,18 @@ export function trackQuizComplete(args: {
       mainTotal: args.mainTotal,
       progressPct: 100,
       durationMs,
-      hashVersion: args.hash.startsWith('v2.') ? 2 : 1,
+      hashVersion: args.hash.startsWith('v3.')
+        ? 3
+        : args.hash.startsWith('v2.')
+          ? 2
+          : 1,
       source: 'fresh_submit',
+      // quiz_complete 一律 v3 路径 · ScoresV3 之 GD/ZR/NL/YF 字段实为 C/R/A/S 的 alias。
       score: {
-        GD: args.result.scores.GD,
-        ZR: args.result.scores.ZR,
-        NL: args.result.scores.NL,
-        YF: args.result.scores.YF,
+        C: args.result.scores.GD,
+        R: args.result.scores.ZR,
+        A: args.result.scores.NL,
+        S: args.result.scores.YF,
       },
       answers: args.answers,
       detail: {
@@ -413,14 +418,24 @@ export function trackResultView(args: {
     isLegacy: !!args.isLegacy,
     hiddenTitles: args.result.unlockedHiddenTitles.map((item) => item.name),
     wasteLevel: args.result.personality.wasteLevel,
-    hashVersion: hash.startsWith('v2.') ? 2 : hash ? 1 : undefined,
+    hashVersion: hash.startsWith('v3.')
+      ? 3
+      : hash.startsWith('v2.')
+        ? 2
+        : hash
+          ? 1
+          : undefined,
     source: isFreshSubmit ? 'fresh_submit' : hash ? 'share_link' : 'unknown',
-    score: {
-      GD: args.result.scores.GD,
-      ZR: args.result.scores.ZR,
-      NL: args.result.scores.NL,
-      YF: args.result.scores.YF,
-    },
+    // legacy 链解出的 Result 用 v2 维度（GD/ZR/NL/YF 真名而非 alias），与 v3 表 score_c/r/a/s
+    // 语义不匹，故 legacy 视图一律不上报 score；事件本身仍计入流量。
+    score: args.isLegacy
+      ? undefined
+      : {
+          C: args.result.scores.GD,
+          R: args.result.scores.ZR,
+          A: args.result.scores.NL,
+          S: args.result.scores.YF,
+        },
   });
 }
 
@@ -447,6 +462,12 @@ export function trackExplainAiClick(result: Result, hash?: string): void {
     isHidden: result.isHidden,
     hiddenTitles: result.unlockedHiddenTitles.map((item) => item.name),
     wasteLevel: result.personality.wasteLevel,
-    hashVersion: hash?.startsWith('v2.') ? 2 : hash ? 1 : undefined,
+    hashVersion: hash?.startsWith('v3.')
+      ? 3
+      : hash?.startsWith('v2.')
+        ? 2
+        : hash
+          ? 1
+          : undefined,
   });
 }

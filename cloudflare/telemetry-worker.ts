@@ -1,6 +1,93 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { questionIndex } from '../src/copy/questions';
+import { questionByIdV3 } from '../src/copy/v3/questions';
+import { personalitiesV3 } from '../src/copy/v3/personalities';
+import { questionIndex as questionIndexV2Raw } from '../src/copy/questions';
+import { personalities as personalitiesV2Raw } from '../src/copy/personalities';
+
+// v3 ingest 只接受 v3 question id；v1/v2 旧链既不再触发 quiz_complete 也不写新表。
+function lookupQuestionV3(id: number) {
+  return questionByIdV3.get(id) ?? null;
+}
+function lookupQuestionV2(id: number) {
+  return questionIndexV2Raw[id] ?? null;
+}
+
+const PERSONALITY_LABELS_V3: Record<string, string> = Object.fromEntries(
+  Object.values(personalitiesV3).map((p) => [p.code, p.name]),
+);
+const PERSONALITY_LABELS_V2: Record<string, string> = Object.fromEntries(
+  Object.values(personalitiesV2Raw).map((p) => [p.code, p.name]),
+);
+
+const DIMENSION_LABELS_V3: Record<string, string> = {
+  C: '接触',
+  R: '调节',
+  A: '黏附',
+  S: '安全',
+  META: '前置',
+};
+const DIMENSION_LABELS_V2: Record<string, string> = {
+  GD: '主动',
+  ZR: '情绪',
+  NL: '亲密',
+  YF: '安全',
+  META: '前置',
+};
+
+// 仪表盘版本配置：决定读哪一组表、列名、lookup 与 label 表。
+type DashboardVersion = {
+  label: string; // hero eyebrow / brand-sub
+  brandSub: string; // top bar 右上角 small text
+  basePath: '/dashboard' | '/v2'; // chip 链接
+  apiPath: string; // JSON 链接
+  tableEvents: string;
+  tableAnswers: string;
+  tableHidden: string;
+  // [{ sqlCol, dimKey }] —— sqlCol 是 telemetry_events* 表的 score 列，dimKey 写入 scoreAverages
+  scoreCols: Array<{ sql: string; key: string; label: string }>;
+  lookup: (id: number) => { id: number; text: string; dimension: string; options: Array<{ label: string; text: string }> } | null;
+  personalityLabels: Record<string, string>;
+  dimensionLabels: Record<string, string>;
+};
+
+const VERSION_V3: DashboardVersion = {
+  label: 'v3 (current)',
+  brandSub: 'v3',
+  basePath: '/dashboard',
+  apiPath: '/api/v3/dashboard',
+  tableEvents: 'telemetry_events_v3',
+  tableAnswers: 'telemetry_answers_v3',
+  tableHidden: 'telemetry_hidden_titles_v3',
+  scoreCols: [
+    { sql: 'score_c', key: 'C', label: 'C 接触' },
+    { sql: 'score_r', key: 'R', label: 'R 调节' },
+    { sql: 'score_a', key: 'A', label: 'A 黏附' },
+    { sql: 'score_s', key: 'S', label: 'S 安全' },
+  ],
+  lookup: lookupQuestionV3,
+  personalityLabels: PERSONALITY_LABELS_V3,
+  dimensionLabels: DIMENSION_LABELS_V3,
+};
+
+const VERSION_V2: DashboardVersion = {
+  label: 'v1 / v2 legacy',
+  brandSub: 'v2 · legacy',
+  basePath: '/v2',
+  apiPath: '/api/v2/dashboard',
+  tableEvents: 'telemetry_events',
+  tableAnswers: 'telemetry_answers',
+  tableHidden: 'telemetry_hidden_titles',
+  scoreCols: [
+    { sql: 'score_gd', key: 'GD', label: 'GD 主动' },
+    { sql: 'score_zr', key: 'ZR', label: 'ZR 情绪' },
+    { sql: 'score_nl', key: 'NL', label: 'NL 亲密' },
+    { sql: 'score_yf', key: 'YF', label: 'YF 安全' },
+  ],
+  lookup: lookupQuestionV2,
+  personalityLabels: PERSONALITY_LABELS_V2,
+  dimensionLabels: DIMENSION_LABELS_V2,
+};
 
 type TelemetryEventType =
   | 'page_view'
@@ -44,12 +131,7 @@ type DashboardData = {
   browsers: KVRow[];
   referrers: KVRow[];
   utmSources: KVRow[];
-  scoreAverages: {
-    GD: number;
-    ZR: number;
-    NL: number;
-    YF: number;
-  };
+  scoreAverages: Record<string, number>;
   answerQuestions: Array<{
     questionId: number;
     text: string;
@@ -95,10 +177,10 @@ type IncomingEvent = {
   hashVersion?: number;
   source?: string;
   score?: {
-    GD?: number;
-    ZR?: number;
-    NL?: number;
-    YF?: number;
+    C?: number;
+    R?: number;
+    A?: number;
+    S?: number;
   };
   answers: Array<{
     questionId: number;
@@ -160,16 +242,30 @@ export default {
       });
     }
 
-    if (url.pathname === '/api/events' && request.method === 'POST') {
+    if (
+      (url.pathname === '/api/v3/events' || url.pathname === '/api/events') &&
+      request.method === 'POST'
+    ) {
+      // 旧 endpoint 与 v3 endpoint 共用同一 ingest，皆写入 v3 表。
+      // 旧线上前端在 vercel 重部署前一直走 /api/events，此为 graceful 兼容。
       return handleEventIngest(request, env);
     }
 
-    if (url.pathname === '/api/dashboard' && request.method === 'GET') {
+    if (url.pathname === '/api/v3/dashboard' && request.method === 'GET') {
       if (!isDashboardAuthorized(request, env)) {
         return unauthorizedResponse();
       }
       const days = parseDays(url.searchParams.get('days'));
-      const data = await loadDashboardData(env.TELEMETRY_DB, days);
+      const data = await loadDashboardData(env.TELEMETRY_DB, days, VERSION_V3);
+      return json(data);
+    }
+
+    if (url.pathname === '/api/v2/dashboard' && request.method === 'GET') {
+      if (!isDashboardAuthorized(request, env)) {
+        return unauthorizedResponse();
+      }
+      const days = parseDays(url.searchParams.get('days'));
+      const data = await loadDashboardData(env.TELEMETRY_DB, days, VERSION_V2);
       return json(data);
     }
 
@@ -181,8 +277,22 @@ export default {
         return unauthorizedResponse();
       }
       const days = parseDays(url.searchParams.get('days'));
-      const data = await loadDashboardData(env.TELEMETRY_DB, days);
-      return new Response(renderDashboardHtml(data), {
+      const data = await loadDashboardData(env.TELEMETRY_DB, days, VERSION_V3);
+      return new Response(renderDashboardHtml(data, VERSION_V3), {
+        headers: {
+          'content-type': 'text/html; charset=utf-8',
+          'cache-control': 'no-store',
+        },
+      });
+    }
+
+    if (url.pathname === '/v2' && request.method === 'GET') {
+      if (!isDashboardAuthorized(request, env)) {
+        return unauthorizedResponse();
+      }
+      const days = parseDays(url.searchParams.get('days'));
+      const data = await loadDashboardData(env.TELEMETRY_DB, days, VERSION_V2);
+      return new Response(renderDashboardHtml(data, VERSION_V2), {
         headers: {
           'content-type': 'text/html; charset=utf-8',
           'cache-control': 'no-store',
@@ -221,7 +331,7 @@ async function handleEventIngest(request: Request, env: Env): Promise<Response> 
   const detailsJson = event.detail ? safeJsonStringify(event.detail, 4000) : null;
 
   const eventStmt = env.TELEMETRY_DB.prepare(
-    `INSERT OR IGNORE INTO telemetry_events (
+    `INSERT OR IGNORE INTO telemetry_events_v3 (
       id,
       visitor_id,
       session_id,
@@ -244,10 +354,10 @@ async function handleEventIngest(request: Request, env: Env): Promise<Response> 
       duration_ms,
       hash_version,
       source,
-      score_gd,
-      score_zr,
-      score_nl,
-      score_yf,
+      score_c,
+      score_r,
+      score_a,
+      score_s,
       viewport_bucket,
       device_type,
       browser,
@@ -282,10 +392,10 @@ async function handleEventIngest(request: Request, env: Env): Promise<Response> 
     event.durationMs ?? null,
     event.hashVersion ?? null,
     event.source ?? null,
-    toFiniteNumber(event.score?.GD),
-    toFiniteNumber(event.score?.ZR),
-    toFiniteNumber(event.score?.NL),
-    toFiniteNumber(event.score?.YF),
+    toFiniteNumber(event.score?.C),
+    toFiniteNumber(event.score?.R),
+    toFiniteNumber(event.score?.A),
+    toFiniteNumber(event.score?.S),
     event.viewport?.bucket ?? null,
     uaInfo.deviceType,
     uaInfo.browser,
@@ -302,11 +412,11 @@ async function handleEventIngest(request: Request, env: Env): Promise<Response> 
 
   if (event.type === 'quiz_complete') {
     for (const answer of event.answers) {
-      const question = questionIndex[answer.questionId];
+      const question = lookupQuestionV3(answer.questionId);
       if (!question) continue;
       statements.push(
         env.TELEMETRY_DB.prepare(
-          `INSERT OR IGNORE INTO telemetry_answers (
+          `INSERT OR IGNORE INTO telemetry_answers_v3 (
             submission_id,
             visitor_id,
             session_id,
@@ -325,7 +435,7 @@ async function handleEventIngest(request: Request, env: Env): Promise<Response> 
           event.relationshipStatus ?? null,
           question.id,
           question.dimension,
-          question.tag ?? '',
+          '',
           answer.optionIndex,
         ),
       );
@@ -334,7 +444,7 @@ async function handleEventIngest(request: Request, env: Env): Promise<Response> 
     for (const titleName of event.hiddenTitles) {
       statements.push(
         env.TELEMETRY_DB.prepare(
-          `INSERT OR IGNORE INTO telemetry_hidden_titles (
+          `INSERT OR IGNORE INTO telemetry_hidden_titles_v3 (
             submission_id,
             visitor_id,
             session_id,
@@ -373,7 +483,7 @@ function normalizeIncomingEvent(raw: unknown): IncomingEvent | null {
         const questionId = toInt(answer.questionId, 1, 10_000);
         const optionIndex = toInt(answer.optionIndex, 0, 9);
         if (questionId === null || optionIndex === null) return [];
-        if (!questionIndex[questionId]) return [];
+        if (!lookupQuestionV3(questionId)) return [];
         return [{ questionId, optionIndex }];
       })
     : [];
@@ -430,7 +540,11 @@ function normalizeIncomingEvent(raw: unknown): IncomingEvent | null {
   };
 }
 
-async function loadDashboardData(db: D1Database, days: number): Promise<DashboardData> {
+async function loadDashboardData(
+  db: D1Database,
+  days: number,
+  v: DashboardVersion,
+): Promise<DashboardData> {
   const fromTs = Date.now() - days * 24 * 60 * 60 * 1000;
 
   const [
@@ -450,12 +564,12 @@ async function loadDashboardData(db: D1Database, days: number): Promise<Dashboar
     scoreAverages,
     answerRows,
   ] = await Promise.all([
-    fetchOverview(db, fromTs),
-    fetchFunnelRows(db, fromTs),
+    fetchOverview(db, fromTs, v),
+    fetchFunnelRows(db, fromTs, v),
     fetchRows(
       db,
       `SELECT COALESCE(page_key, '(unknown)') AS key, COUNT(*) AS value
-         FROM telemetry_events
+         FROM ${v.tableEvents}
         WHERE occurred_at >= ? AND event_type = 'page_view'
         GROUP BY 1
         ORDER BY value DESC`,
@@ -464,7 +578,7 @@ async function loadDashboardData(db: D1Database, days: number): Promise<Dashboar
     fetchRows(
       db,
       `SELECT COALESCE(result_code, '(unknown)') AS key, COUNT(*) AS value
-         FROM telemetry_events
+         FROM ${v.tableEvents}
         WHERE occurred_at >= ? AND event_type = 'quiz_complete'
         GROUP BY 1
         ORDER BY value DESC`,
@@ -473,7 +587,7 @@ async function loadDashboardData(db: D1Database, days: number): Promise<Dashboar
     fetchRows(
       db,
       `SELECT COALESCE(result_code, '(unknown)') AS key, COUNT(*) AS value
-         FROM telemetry_events
+         FROM ${v.tableEvents}
         WHERE occurred_at >= ? AND event_type = 'result_view' AND source = 'share_link'
         GROUP BY 1
         ORDER BY value DESC`,
@@ -482,7 +596,7 @@ async function loadDashboardData(db: D1Database, days: number): Promise<Dashboar
     fetchRows(
       db,
       `SELECT COALESCE(relationship_status, '(unknown)') AS key, COUNT(*) AS value
-         FROM telemetry_events
+         FROM ${v.tableEvents}
         WHERE occurred_at >= ? AND event_type = 'quiz_complete'
         GROUP BY 1
         ORDER BY value DESC`,
@@ -491,7 +605,7 @@ async function loadDashboardData(db: D1Database, days: number): Promise<Dashboar
     fetchRows(
       db,
       `SELECT title_name AS key, COUNT(*) AS value
-         FROM telemetry_hidden_titles
+         FROM ${v.tableHidden}
         WHERE occurred_at >= ?
         GROUP BY 1
         ORDER BY value DESC`,
@@ -500,7 +614,7 @@ async function loadDashboardData(db: D1Database, days: number): Promise<Dashboar
     fetchRows(
       db,
       `SELECT COALESCE(CAST(waste_level AS TEXT), '(unknown)') AS key, COUNT(*) AS value
-         FROM telemetry_events
+         FROM ${v.tableEvents}
         WHERE occurred_at >= ? AND event_type = 'quiz_complete'
         GROUP BY 1
         ORDER BY key ASC`,
@@ -509,7 +623,7 @@ async function loadDashboardData(db: D1Database, days: number): Promise<Dashboar
     fetchRows(
       db,
       `SELECT COALESCE(country, 'Unknown') AS key, COUNT(*) AS value
-         FROM telemetry_events
+         FROM ${v.tableEvents}
         WHERE occurred_at >= ? AND event_type = 'page_view'
         GROUP BY 1
         ORDER BY value DESC
@@ -519,7 +633,7 @@ async function loadDashboardData(db: D1Database, days: number): Promise<Dashboar
     fetchRows(
       db,
       `SELECT COALESCE(device_type, 'unknown') AS key, COUNT(*) AS value
-         FROM telemetry_events
+         FROM ${v.tableEvents}
         WHERE occurred_at >= ? AND event_type = 'page_view'
         GROUP BY 1
         ORDER BY value DESC`,
@@ -528,7 +642,7 @@ async function loadDashboardData(db: D1Database, days: number): Promise<Dashboar
     fetchRows(
       db,
       `SELECT COALESCE(browser, 'unknown') AS key, COUNT(*) AS value
-         FROM telemetry_events
+         FROM ${v.tableEvents}
         WHERE occurred_at >= ? AND event_type = 'page_view'
         GROUP BY 1
         ORDER BY value DESC
@@ -538,7 +652,7 @@ async function loadDashboardData(db: D1Database, days: number): Promise<Dashboar
     fetchRows(
       db,
       `SELECT COALESCE(NULLIF(referrer_host, ''), '(direct)') AS key, COUNT(*) AS value
-         FROM telemetry_events
+         FROM ${v.tableEvents}
         WHERE occurred_at >= ? AND event_type = 'page_view'
         GROUP BY 1
         ORDER BY value DESC
@@ -548,15 +662,15 @@ async function loadDashboardData(db: D1Database, days: number): Promise<Dashboar
     fetchRows(
       db,
       `SELECT COALESCE(NULLIF(utm_source, ''), '(direct)') AS key, COUNT(*) AS value
-         FROM telemetry_events
+         FROM ${v.tableEvents}
         WHERE occurred_at >= ? AND event_type = 'page_view'
         GROUP BY 1
         ORDER BY value DESC
         LIMIT 12`,
       [fromTs],
     ),
-    fetchScoreAverages(db, fromTs),
-    fetchAnswerRows(db, fromTs),
+    fetchScoreAverages(db, fromTs, v),
+    fetchAnswerRows(db, fromTs, v),
   ]);
 
   return {
@@ -576,11 +690,11 @@ async function loadDashboardData(db: D1Database, days: number): Promise<Dashboar
     referrers,
     utmSources,
     scoreAverages,
-    answerQuestions: groupAnswerRows(answerRows),
+    answerQuestions: groupAnswerRows(answerRows, v),
   };
 }
 
-async function fetchOverview(db: D1Database, fromTs: number) {
+async function fetchOverview(db: D1Database, fromTs: number, v: DashboardVersion) {
   const row =
     (await db
       .prepare(
@@ -595,7 +709,7 @@ async function fetchOverview(db: D1Database, fromTs: number) {
           SUM(CASE WHEN event_type = 'share_image_open' THEN 1 ELSE 0 END) AS share_image_opens,
           SUM(CASE WHEN event_type = 'explain_ai_click' THEN 1 ELSE 0 END) AS explain_clicks,
           AVG(CASE WHEN event_type = 'quiz_complete' THEN duration_ms END) AS avg_completion_ms
-         FROM telemetry_events
+         FROM ${v.tableEvents}
         WHERE occurred_at >= ?`,
       )
       .bind(fromTs)
@@ -630,7 +744,11 @@ async function fetchOverview(db: D1Database, fromTs: number) {
   };
 }
 
-async function fetchFunnelRows(db: D1Database, fromTs: number): Promise<KVRow[]> {
+async function fetchFunnelRows(
+  db: D1Database,
+  fromTs: number,
+  v: DashboardVersion,
+): Promise<KVRow[]> {
   const row =
     (await db
       .prepare(
@@ -656,7 +774,7 @@ async function fetchFunnelRows(db: D1Database, fromTs: number): Promise<KVRow[]>
           COUNT(DISTINCT CASE
             WHEN event_type = 'result_view' THEN session_id
           END) AS result_view
-         FROM telemetry_events
+         FROM ${v.tableEvents}
         WHERE occurred_at >= ?`,
       )
       .bind(fromTs)
@@ -676,34 +794,37 @@ async function fetchFunnelRows(db: D1Database, fromTs: number): Promise<KVRow[]>
   }));
 }
 
-async function fetchScoreAverages(db: D1Database, fromTs: number) {
+async function fetchScoreAverages(
+  db: D1Database,
+  fromTs: number,
+  v: DashboardVersion,
+): Promise<Record<string, number>> {
+  const selects = v.scoreCols.map((c) => `AVG(${c.sql}) AS ${c.sql}`).join(', ');
   const row =
     (await db
       .prepare(
-        `SELECT
-          AVG(score_gd) AS gd,
-          AVG(score_zr) AS zr,
-          AVG(score_nl) AS nl,
-          AVG(score_yf) AS yf
-         FROM telemetry_events
+        `SELECT ${selects}
+         FROM ${v.tableEvents}
         WHERE occurred_at >= ? AND event_type = 'quiz_complete'`,
       )
       .bind(fromTs)
-      .first<{ gd?: number; zr?: number; nl?: number; yf?: number }>()) ?? {};
-
-  return {
-    GD: round2(row.gd ?? 0),
-    ZR: round2(row.zr ?? 0),
-    NL: round2(row.nl ?? 0),
-    YF: round2(row.yf ?? 0),
-  };
+      .first<Record<string, number | null>>()) ?? {};
+  const out: Record<string, number> = {};
+  for (const col of v.scoreCols) {
+    out[col.key] = round2(row[col.sql] ?? 0);
+  }
+  return out;
 }
 
-async function fetchAnswerRows(db: D1Database, fromTs: number) {
+async function fetchAnswerRows(
+  db: D1Database,
+  fromTs: number,
+  v: DashboardVersion,
+) {
   const result = await db
     .prepare(
       `SELECT question_id, option_index, COUNT(*) AS value
-         FROM telemetry_answers
+         FROM ${v.tableAnswers}
         WHERE occurred_at >= ?
         GROUP BY question_id, option_index
         ORDER BY question_id ASC, option_index ASC`,
@@ -715,6 +836,7 @@ async function fetchAnswerRows(db: D1Database, fromTs: number) {
 
 function groupAnswerRows(
   rows: Array<{ question_id: number; option_index: number; value: number }>,
+  v: DashboardVersion,
 ) {
   const grouped = new Map<number, Array<{ optionIndex: number; value: number }>>();
   for (const row of rows) {
@@ -728,14 +850,14 @@ function groupAnswerRows(
 
   return Array.from(grouped.entries())
     .map(([questionId, optionRows]) => {
-      const question = questionIndex[questionId];
+      const question = v.lookup(questionId);
       if (!question) return null;
       const total = optionRows.reduce((sum, row) => sum + row.value, 0);
       return {
         questionId,
         text: question.text,
         dimension: question.dimension,
-        tag: question.tag ?? '',
+        tag: '',
         total,
         options: optionRows.map((row) => ({
           label: question.options[row.optionIndex]?.label ?? `#${row.optionIndex}`,
@@ -760,415 +882,813 @@ async function fetchRows(
   }));
 }
 
-function renderDashboardHtml(data: DashboardData): string {
+function renderDashboardHtml(data: DashboardData, v: DashboardVersion): string {
+  const otherVersion = v.basePath === '/v2' ? VERSION_V3 : VERSION_V2;
+  const switchLink = `<a class="chip chip-mono" href="${otherVersion.basePath}?days=${data.days}">${otherVersion.brandSub.toUpperCase()}</a>`;
+  const scoreBoxes = v.scoreCols
+    .map((c) => renderScoreBox(c.label, data.scoreAverages[c.key] ?? 0))
+    .join('');
+  const scoreSubLabels = v.scoreCols.map((c) => c.label.split(' ').slice(1).join(' ') || c.label).join(' / ');
   return `<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>FWTI Telemetry Dashboard</title>
+    <title>FWTI Telemetry</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
     <style>
       :root {
-        --bg: #f3f6f4;
+        --bg: #ffffff;
         --surface: #ffffff;
-        --surface-strong: #f7fbf8;
-        --text: #112218;
-        --muted: #5a6b61;
-        --border: #dbe6de;
-        --accent: #2d8f63;
-        --accent-soft: #dff3e8;
-        --danger: #c84d4d;
-        --shadow: 0 20px 48px rgba(17, 34, 24, 0.08);
-        --radius: 18px;
-        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --text: #171717;
+        --muted: #4d4d4d;
+        --muted-2: #666666;
+        --muted-3: #808080;
+        --line: #ebebeb;
+        --gray-50: #fafafa;
+        --link: #0072f5;
+        --focus: hsla(212, 100%, 48%, 1);
+        --develop: #0a72ef;
+        --preview: #de1d8d;
+        --ship: #ff5b4f;
+        --badge-bg: #ebf5ff;
+        --badge-text: #0068d6;
+        --ring-border: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+        --light-ring: rgb(235, 235, 235) 0px 0px 0px 1px;
+        --card-shadow:
+          rgba(0, 0, 0, 0.08) 0px 0px 0px 1px,
+          rgba(0, 0, 0, 0.04) 0px 2px 2px,
+          rgba(0, 0, 0, 0.04) 0px 8px 8px -8px,
+          #fafafa 0px 0px 0px 1px inset;
       }
-      * { box-sizing: border-box; }
-      body {
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body {
         margin: 0;
-        background:
-          radial-gradient(circle at top left, rgba(45, 143, 99, 0.10), transparent 32%),
-          linear-gradient(180deg, #f8fbf9 0%, var(--bg) 100%);
+        padding: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          'Geist', Arial, 'Apple Color Emoji', 'Segoe UI Emoji',
+          'Segoe UI Symbol';
+        font-feature-settings: 'liga' 1;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      a { color: var(--link); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      :focus-visible {
+        outline: 2px solid var(--focus);
+        outline-offset: 2px;
+        border-radius: 6px;
+      }
+      .mono {
+        font-family:
+          'Geist Mono', ui-monospace, SFMono-Regular, 'Roboto Mono', Menlo,
+          Monaco, 'Liberation Mono', 'DejaVu Sans Mono', 'Courier New';
+        font-feature-settings: 'liga' 1, 'tnum' 1;
+      }
+
+      header.topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: saturate(180%) blur(10px);
+        box-shadow: var(--ring-border);
+      }
+      .topbar-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 14px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: -0.32px;
         color: var(--text);
       }
+      .brand-dot {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--text);
+      }
+      .brand-sub {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--muted-2);
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+      .top-actions { display: flex; align-items: center; gap: 8px; }
+
       .shell {
-        max-width: 1400px;
+        max-width: 1200px;
         margin: 0 auto;
-        padding: 40px 24px 64px;
+        padding: 56px 24px 96px;
       }
+
       .hero {
-        display: grid;
-        grid-template-columns: 1.4fr 0.9fr;
-        gap: 20px;
-        margin-bottom: 24px;
+        margin-bottom: 64px;
       }
-      .card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        box-shadow: var(--shadow);
-      }
-      .hero-card {
-        padding: 28px;
+      .hero-eyebrow {
+        font-family:
+          'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-feature-settings: 'liga' 1, 'tnum' 1;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0;
+        text-transform: uppercase;
+        color: var(--muted-2);
+        margin-bottom: 16px;
       }
       .hero-title {
-        margin: 0 0 10px;
-        font-size: 30px;
-        font-weight: 800;
-        letter-spacing: 0.01em;
+        margin: 0 0 16px;
+        font-size: 48px;
+        font-weight: 600;
+        line-height: 1.05;
+        letter-spacing: -2.4px;
+        color: var(--text);
       }
       .hero-sub {
         margin: 0;
-        color: var(--muted);
+        max-width: 720px;
+        font-size: 20px;
         line-height: 1.6;
+        color: var(--muted);
       }
-      .hero-meta {
-        display: grid;
-        gap: 10px;
-        align-content: start;
-        padding: 24px;
-        background: linear-gradient(180deg, #ffffff 0%, var(--surface-strong) 100%);
-      }
-      .chip-row {
+      .hero-controls {
+        margin-top: 28px;
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 18px;
+        align-items: center;
+        gap: 8px;
       }
+
       .chip {
         display: inline-flex;
         align-items: center;
-        padding: 8px 12px;
-        border-radius: 999px;
-        border: 1px solid var(--border);
-        color: var(--muted);
+        height: 32px;
+        padding: 0 12px;
+        border-radius: 9999px;
+        background: var(--surface);
+        color: var(--text);
+        font-size: 14px;
+        font-weight: 500;
         text-decoration: none;
-        font-weight: 600;
-        background: #fff;
+        box-shadow: var(--light-ring);
+        transition: box-shadow 0.15s ease;
+      }
+      .chip:hover {
+        text-decoration: none;
+        box-shadow: rgba(0, 0, 0, 0.18) 0px 0px 0px 1px;
       }
       .chip.is-active {
-        background: var(--accent);
-        border-color: var(--accent);
+        background: var(--text);
         color: #fff;
+        box-shadow: none;
       }
-      .grid {
+      .chip-mono {
+        font-family:
+          'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-feature-settings: 'liga' 1, 'tnum' 1;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        height: 22px;
+        padding: 0 10px;
+        border-radius: 9999px;
+        background: var(--badge-bg);
+        color: var(--badge-text);
+        font-size: 12px;
+        font-weight: 500;
+        font-family:
+          'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-feature-settings: 'liga' 1, 'tnum' 1;
+      }
+      .meta-strip {
+        margin-top: 32px;
         display: grid;
-        grid-template-columns: repeat(12, minmax(0, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0;
+        box-shadow: var(--ring-border);
+        border-radius: 8px;
+        background: var(--surface);
+        overflow: hidden;
       }
-      .span-12 { grid-column: span 12; }
-      .span-8 { grid-column: span 8; }
-      .span-6 { grid-column: span 6; }
-      .span-4 { grid-column: span 4; }
-      .span-3 { grid-column: span 3; }
-      .panel {
-        padding: 22px;
+      .meta-cell {
+        padding: 18px 20px;
+        box-shadow: inset -1px 0 0 var(--line);
       }
-      .panel h2 {
-        margin: 0 0 18px;
-        font-size: 20px;
+      .meta-cell:last-child { box-shadow: none; }
+      .meta-cell-label {
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        color: var(--muted-2);
+        margin-bottom: 8px;
+        font-family:
+          'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-feature-settings: 'liga' 1, 'tnum' 1;
       }
+      .meta-cell-value {
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--text);
+        letter-spacing: -0.32px;
+      }
+
+      section.section { margin-top: 56px; }
+      .section-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+      .section-title {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: -0.96px;
+        color: var(--text);
+      }
+      .section-meta {
+        font-size: 14px;
+        color: var(--muted-2);
+      }
+
+      .card {
+        background: var(--surface);
+        border-radius: 8px;
+        box-shadow: var(--card-shadow);
+      }
+      .card-pad { padding: 24px; }
+      .card-header {
+        padding: 20px 24px 16px;
+        box-shadow: inset 0 -1px 0 var(--line);
+      }
+      .card-title {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: -0.32px;
+        color: var(--text);
+      }
+      .card-sub {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: var(--muted-2);
+      }
+      .card-body { padding: 20px 24px 24px; }
+
+      .grid { display: grid; gap: 20px; }
+      .grid-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+      .col-12 { grid-column: span 12; }
+      .col-8 { grid-column: span 8; }
+      .col-6 { grid-column: span 6; }
+      .col-4 { grid-column: span 4; }
+
       .kpi-grid {
         display: grid;
         grid-template-columns: repeat(5, minmax(0, 1fr));
-        gap: 14px;
+        gap: 0;
+        box-shadow: var(--ring-border);
+        border-radius: 8px;
+        background: var(--surface);
+        overflow: hidden;
       }
-      .kpi {
-        padding: 18px;
-        border-radius: 16px;
-        border: 1px solid var(--border);
-        background: linear-gradient(180deg, #ffffff 0%, var(--surface-strong) 100%);
+      .kpi-cell {
+        padding: 24px;
+        box-shadow: inset -1px 0 0 var(--line);
       }
+      .kpi-cell:last-child { box-shadow: none; }
       .kpi-label {
-        color: var(--muted);
-        font-size: 13px;
-        margin-bottom: 10px;
+        font-family:
+          'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-feature-settings: 'liga' 1, 'tnum' 1;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        color: var(--muted-2);
+        margin-bottom: 14px;
       }
       .kpi-value {
-        font-size: 30px;
-        font-weight: 800;
+        font-size: 32px;
+        font-weight: 600;
+        line-height: 1.1;
+        letter-spacing: -1.28px;
+        color: var(--text);
+        font-feature-settings: 'tnum' 1;
       }
       .kpi-note {
-        margin-top: 8px;
+        margin-top: 10px;
         font-size: 13px;
-        color: var(--muted);
+        color: var(--muted-2);
+        line-height: 1.45;
       }
-      .bar-list {
+
+      .funnel-grid {
         display: grid;
-        gap: 12px;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 0;
+        box-shadow: var(--ring-border);
+        border-radius: 8px;
+        overflow: hidden;
       }
+      .funnel-step {
+        padding: 20px 18px;
+        background: var(--surface);
+        box-shadow: inset -1px 0 0 var(--line);
+        position: relative;
+      }
+      .funnel-step:last-child { box-shadow: none; }
+      .funnel-step .label {
+        font-family:
+          'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-feature-settings: 'liga' 1, 'tnum' 1;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        color: var(--muted-2);
+        margin-bottom: 10px;
+      }
+      .funnel-step .value {
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: -0.96px;
+        color: var(--text);
+        font-feature-settings: 'tnum' 1;
+      }
+
+      .bar-list { display: grid; gap: 10px; }
       .bar-row {
         display: grid;
-        grid-template-columns: 170px minmax(0, 1fr) 72px;
-        gap: 14px;
+        grid-template-columns: minmax(120px, 200px) minmax(0, 1fr) 64px;
+        gap: 16px;
         align-items: center;
       }
       .bar-label {
         font-size: 14px;
         color: var(--text);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
       .bar-track {
-        height: 14px;
-        border-radius: 999px;
-        background: #edf2ee;
+        position: relative;
+        height: 6px;
+        border-radius: 9999px;
+        background: var(--gray-50);
+        box-shadow: var(--ring-border);
         overflow: hidden;
       }
       .bar-fill {
         height: 100%;
-        border-radius: 999px;
-        background: linear-gradient(90deg, var(--accent) 0%, #55b987 100%);
+        border-radius: 9999px;
+        background: var(--text);
       }
       .bar-value {
         text-align: right;
-        font-variant-numeric: tabular-nums;
+        font-family:
+          'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-feature-settings: 'tnum' 1;
+        font-size: 13px;
         color: var(--muted);
       }
-      .funnel-grid {
-        display: grid;
-        grid-template-columns: repeat(7, minmax(0, 1fr));
-        gap: 12px;
-      }
-      .funnel-step {
-        padding: 16px 14px;
-        border-radius: 16px;
-        background: linear-gradient(180deg, #ffffff 0%, var(--surface-strong) 100%);
-        border: 1px solid var(--border);
-      }
-      .funnel-step strong {
-        display: block;
-        font-size: 22px;
-        margin-top: 8px;
-      }
-      .tiny {
-        color: var(--muted);
-        font-size: 12px;
-      }
-      table {
+
+      .table {
         width: 100%;
         border-collapse: collapse;
       }
-      th, td {
-        padding: 12px 10px;
-        border-bottom: 1px solid var(--border);
+      .table th, .table td {
+        padding: 12px 0;
         text-align: left;
+        font-size: 14px;
+        box-shadow: inset 0 -1px 0 var(--line);
+      }
+      .table tr:last-child td { box-shadow: none; }
+      .table th {
+        font-family:
+          'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-feature-settings: 'liga' 1, 'tnum' 1;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        color: var(--muted-2);
+        letter-spacing: 0;
+      }
+      .table td {
+        color: var(--text);
         vertical-align: top;
       }
-      th {
-        font-size: 13px;
+      .table .tnum {
+        font-family:
+          'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-feature-settings: 'tnum' 1;
+        text-align: right;
         color: var(--muted);
-        font-weight: 700;
       }
-      td {
-        font-size: 14px;
-      }
-      .answer-card {
-        padding: 18px;
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        background: linear-gradient(180deg, #ffffff 0%, var(--surface-strong) 100%);
-      }
-      .answer-grid {
-        display: grid;
-        gap: 14px;
-      }
-      .answer-head {
-        display: flex;
-        justify-content: space-between;
-        gap: 16px;
-        align-items: baseline;
-      }
-      .answer-title {
-        font-size: 16px;
-        font-weight: 700;
-      }
-      .answer-meta {
-        color: var(--muted);
-        font-size: 13px;
-      }
-      .badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 3px 8px;
-        margin-left: 8px;
-        border-radius: 999px;
-        background: var(--accent-soft);
-        color: var(--accent);
-        font-size: 12px;
-        font-weight: 700;
-      }
-      .empty {
-        color: var(--muted);
-        margin: 0;
-      }
+
       .score-grid {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0;
+        box-shadow: var(--ring-border);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .score-cell {
+        padding: 20px;
+        background: var(--surface);
+        box-shadow: inset -1px 0 0 var(--line);
+      }
+      .score-cell:last-child { box-shadow: none; }
+      .score-cell .name {
+        font-family:
+          'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-feature-settings: 'liga' 1, 'tnum' 1;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        color: var(--muted-2);
+        margin-bottom: 10px;
+      }
+      .score-cell .alias {
+        font-size: 11px;
+        color: var(--muted-3);
+        margin-left: 6px;
+        text-transform: none;
+      }
+      .score-cell .value {
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: -0.96px;
+        color: var(--text);
+        font-feature-settings: 'tnum' 1;
+      }
+      .score-cell .delta {
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--muted-2);
+      }
+
+      .answer-stack { display: grid; gap: 0; }
+      .answer-card {
+        padding: 24px;
+        box-shadow: inset 0 -1px 0 var(--line);
+      }
+      .answer-card:last-child { box-shadow: none; }
+      .answer-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
         gap: 12px;
+        margin-bottom: 16px;
       }
-      .score-box {
-        padding: 16px;
-        border-radius: 16px;
-        border: 1px solid var(--border);
-        background: linear-gradient(180deg, #ffffff 0%, var(--surface-strong) 100%);
+      .answer-id {
+        font-family:
+          'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-feature-settings: 'liga' 1, 'tnum' 1;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        color: var(--muted-2);
+        margin-right: 10px;
       }
-      .score-box strong {
-        display: block;
-        margin-top: 8px;
-        font-size: 24px;
+      .answer-title {
+        font-size: 16px;
+        font-weight: 500;
+        letter-spacing: -0.32px;
+        color: var(--text);
       }
-      @media (max-width: 1200px) {
-        .hero { grid-template-columns: 1fr; }
+      .answer-meta {
+        font-family:
+          'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-feature-settings: 'liga' 1, 'tnum' 1;
+        font-size: 12px;
+        color: var(--muted-2);
+        text-transform: uppercase;
+      }
+
+      .empty {
+        margin: 0;
+        padding: 24px 0;
+        font-size: 14px;
+        color: var(--muted-2);
+        text-align: center;
+      }
+
+      footer.footer {
+        max-width: 1200px;
+        margin: 80px auto 0;
+        padding: 32px 24px;
+        box-shadow: inset 0 1px 0 var(--line);
+        font-size: 13px;
+        color: var(--muted-2);
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      @media (max-width: 1024px) {
+        .hero-title { font-size: 40px; letter-spacing: -2px; }
         .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .kpi-cell { box-shadow: inset -1px -1px 0 var(--line); }
+        .kpi-cell:nth-child(2n) { box-shadow: inset 0 -1px 0 var(--line); }
+        .kpi-cell:nth-last-child(-n+2) { box-shadow: inset -1px 0 0 var(--line); }
+        .kpi-cell:last-child { box-shadow: none; }
         .funnel-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .span-8, .span-6, .span-4, .span-3 { grid-column: span 12; }
+        .funnel-step { box-shadow: inset -1px -1px 0 var(--line); }
+        .col-8, .col-6, .col-4 { grid-column: span 12; }
+        .meta-strip { grid-template-columns: 1fr; }
+        .meta-cell { box-shadow: inset 0 -1px 0 var(--line); }
+        .meta-cell:last-child { box-shadow: none; }
       }
-      @media (max-width: 720px) {
-        .shell { padding: 20px 14px 40px; }
+      @media (max-width: 640px) {
+        .shell { padding: 32px 16px 64px; }
+        .hero { margin-bottom: 40px; }
+        .hero-title { font-size: 32px; letter-spacing: -1.28px; }
+        .hero-sub { font-size: 16px; }
         .kpi-grid { grid-template-columns: 1fr; }
-        .bar-row { grid-template-columns: 1fr; }
+        .kpi-cell { box-shadow: inset 0 -1px 0 var(--line); }
+        .kpi-cell:last-child { box-shadow: none; }
+        .funnel-grid { grid-template-columns: 1fr; }
         .score-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .score-cell { box-shadow: inset -1px -1px 0 var(--line); }
+        .score-cell:nth-child(2n) { box-shadow: inset 0 -1px 0 var(--line); }
+        .bar-row { grid-template-columns: minmax(0, 1fr) 64px; row-gap: 6px; }
+        .bar-label { grid-column: span 2; }
+        .answer-head { flex-direction: column; align-items: flex-start; gap: 8px; }
       }
     </style>
   </head>
   <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="/dashboard?days=${data.days}">
+          <span class="brand-dot" aria-hidden="true"></span>
+          <span>FWTI Telemetry</span>
+          <span class="brand-sub mono">${escapeHtml(v.brandSub)}</span>
+        </a>
+        <div class="top-actions">
+          ${switchLink}
+          <a class="chip chip-mono" href="${v.apiPath}?days=${data.days}">JSON</a>
+        </div>
+      </div>
+    </header>
+
     <main class="shell">
       <section class="hero">
-        <div class="card hero-card">
-          <h1 class="hero-title">FWTI 遥测面板</h1>
-          <p class="hero-sub">
-            该面板聚合访问量、答题漏斗、结果分布与题目选项分布，便于直接观察产品流失点、
-            题目偏斜与分享传播效果。
-          </p>
-          <div class="chip-row">
-            ${renderDayChip(1, data.days)}
-            ${renderDayChip(7, data.days)}
-            ${renderDayChip(30, data.days)}
-            <a class="chip" href="/api/dashboard?days=${data.days}">JSON</a>
+        <div class="hero-eyebrow mono">Last ${data.days} days · ${escapeHtml(formatDateTime(data.generatedAt))}</div>
+        <h1 class="hero-title">FWTI 遥测面板</h1>
+        <p class="hero-sub">
+          聚合访问、答题漏斗、结果分布与题目选项分布——观流失、察偏斜、量传播。
+        </p>
+        <div class="hero-controls" role="group" aria-label="时间窗口">
+          ${renderDayChip(1, data.days)}
+          ${renderDayChip(7, data.days)}
+          ${renderDayChip(30, data.days)}
+        </div>
+        <div class="meta-strip">
+          <div class="meta-cell">
+            <div class="meta-cell-label">Window</div>
+            <div class="meta-cell-value mono">${data.days}d</div>
+          </div>
+          <div class="meta-cell">
+            <div class="meta-cell-label">Generated</div>
+            <div class="meta-cell-value mono">${escapeHtml(formatDateTime(data.generatedAt))}</div>
+          </div>
+          <div class="meta-cell">
+            <div class="meta-cell-label">Endpoint</div>
+            <div class="meta-cell-value mono">POST /api/events</div>
           </div>
         </div>
-        <aside class="card hero-meta">
-          <div><strong>统计窗口</strong><div class="tiny">最近 ${data.days} 天</div></div>
-          <div><strong>生成时间</strong><div class="tiny">${escapeHtml(formatDateTime(data.generatedAt))}</div></div>
-          <div><strong>接口</strong><div class="tiny">POST /api/events</div></div>
-        </aside>
       </section>
 
-      <section class="card panel span-12">
-        <h2>核心概览</h2>
+      <section class="section">
+        <div class="section-head">
+          <h2 class="section-title">核心概览</h2>
+          <span class="section-meta">Overview</span>
+        </div>
         <div class="kpi-grid">
-          ${renderKpi('页面浏览', formatInteger(data.overview.pageViews), `访客 ${formatInteger(data.overview.uniqueVisitors)} / 会话 ${formatInteger(data.overview.uniqueSessions)}`)}
-          ${renderKpi('答题开始', formatInteger(data.overview.quizStarts), `提交 ${formatInteger(data.overview.quizCompletes)}`)}
-          ${renderKpi('完成率', formatPercent(data.overview.completionRate), `基于 quiz_start -> quiz_complete`)}
-          ${renderKpi('平均完成时长', formatDuration(data.overview.avgCompletionMs), '仅统计完成答卷')}
-          ${renderKpi('分享传播', formatInteger(data.overview.shareResultViews), `分享图 ${formatInteger(data.overview.shareImageOpens)} / AI 解读 ${formatInteger(data.overview.explainClicks)}`)}
+          ${renderKpi('Page Views', formatInteger(data.overview.pageViews), `访客 ${formatInteger(data.overview.uniqueVisitors)} · 会话 ${formatInteger(data.overview.uniqueSessions)}`)}
+          ${renderKpi('Quiz Starts', formatInteger(data.overview.quizStarts), `提交 ${formatInteger(data.overview.quizCompletes)}`)}
+          ${renderKpi('Completion', formatPercent(data.overview.completionRate), 'quiz_start → quiz_complete')}
+          ${renderKpi('Avg Duration', formatDuration(data.overview.avgCompletionMs), '仅统计完成答卷')}
+          ${renderKpi('Shares', formatInteger(data.overview.shareResultViews), `分享图 ${formatInteger(data.overview.shareImageOpens)} · AI 解读 ${formatInteger(data.overview.explainClicks)}`)}
         </div>
       </section>
 
-      <section class="grid">
-        <div class="card panel span-12">
-          <h2>答题漏斗</h2>
-          <div class="funnel-grid">
-            ${data.funnel
-              .map(
-                (row) => `<div class="funnel-step">
-                  <div class="tiny">${escapeHtml(FUNNEL_LABELS[row.key] ?? row.key)}</div>
-                  <strong>${formatInteger(row.value)}</strong>
-                </div>`,
-              )
-              .join('')}
-          </div>
+      <section class="section">
+        <div class="section-head">
+          <h2 class="section-title">答题漏斗</h2>
+          <span class="section-meta">Funnel</span>
         </div>
-
-        <div class="card panel span-6">
-          <h2>访问页面</h2>
-          ${renderBarList(data.pageViews, (row) => PAGE_LABELS[row.key] ?? row.key)}
+        <div class="funnel-grid">
+          ${data.funnel
+            .map(
+              (row) => `<div class="funnel-step">
+                <div class="label">${escapeHtml(FUNNEL_LABELS[row.key] ?? row.key)}</div>
+                <div class="value">${formatInteger(row.value)}</div>
+              </div>`,
+            )
+            .join('')}
         </div>
+      </section>
 
-        <div class="card panel span-6">
-          <h2>答卷结果分布</h2>
-          ${renderBarList(data.resultCodes, (row) => row.key)}
+      <section class="section">
+        <div class="section-head">
+          <h2 class="section-title">分布</h2>
+          <span class="section-meta">Distributions</span>
         </div>
-
-        <div class="card panel span-4">
-          <h2>状态分布</h2>
-          ${renderBarList(data.statuses, (row) => STATUS_LABELS[row.key] ?? row.key)}
-        </div>
-
-        <div class="card panel span-4">
-          <h2>隐藏称号命中</h2>
-          ${renderBarList(data.hiddenTitles, (row) => row.key)}
-        </div>
-
-        <div class="card panel span-4">
-          <h2>分享结果来源</h2>
-          ${renderBarList(data.resultShares, (row) => row.key)}
-        </div>
-
-        <div class="card panel span-6">
-          <h2>设备与浏览器</h2>
-          <div class="score-grid" style="margin-bottom: 18px;">
-            <div class="score-box">
-              <div class="tiny">设备</div>
-              ${renderInlineList(data.devices)}
+        <div class="grid grid-12">
+          <div class="card col-6">
+            <div class="card-header">
+              <h3 class="card-title">访问页面</h3>
+              <p class="card-sub">Page views by route</p>
             </div>
-            <div class="score-box" style="grid-column: span 3;">
-              <div class="tiny">浏览器</div>
-              ${renderInlineList(data.browsers)}
+            <div class="card-body">
+              ${renderBarList(data.pageViews, (row) => PAGE_LABELS[row.key] ?? row.key)}
             </div>
           </div>
-          ${renderBarList(data.devices, (row) => row.key)}
-        </div>
 
-        <div class="card panel span-6">
-          <h2>地域与来源</h2>
-          <div style="display:grid; gap:18px;">
-            <div>
-              <div class="tiny" style="margin-bottom:10px;">国家 / 地区</div>
-              ${renderBarList(data.countries, (row) => row.key)}
+          <div class="card col-6">
+            <div class="card-header">
+              <h3 class="card-title">答卷结果分布</h3>
+              <p class="card-sub">Personality codes</p>
             </div>
-            <div>
-              <div class="tiny" style="margin-bottom:10px;">Referrer</div>
-              ${renderBarList(data.referrers, (row) => row.key)}
+            <div class="card-body">
+              ${renderBarList(data.resultCodes, (row) =>
+                v.personalityLabels[row.key]
+                  ? `${row.key} · ${v.personalityLabels[row.key]}`
+                  : row.key,
+              )}
             </div>
-            <div>
-              <div class="tiny" style="margin-bottom:10px;">UTM Source</div>
-              ${renderBarList(data.utmSources, (row) => row.key)}
+          </div>
+
+          <div class="card col-4">
+            <div class="card-header">
+              <h3 class="card-title">关系状态</h3>
+              <p class="card-sub">META status</p>
+            </div>
+            <div class="card-body">
+              ${renderBarList(data.statuses, (row) => STATUS_LABELS[row.key] ?? row.key)}
+            </div>
+          </div>
+
+          <div class="card col-4">
+            <div class="card-header">
+              <h3 class="card-title">隐藏称号</h3>
+              <p class="card-sub">Hidden titles unlocked</p>
+            </div>
+            <div class="card-body">
+              ${renderBarList(data.hiddenTitles, (row) => row.key)}
+            </div>
+          </div>
+
+          <div class="card col-4">
+            <div class="card-header">
+              <h3 class="card-title">分享结果来源</h3>
+              <p class="card-sub">Share traffic sources</p>
+            </div>
+            <div class="card-body">
+              ${renderBarList(data.resultShares, (row) =>
+                v.personalityLabels[row.key]
+                  ? `${row.key} · ${v.personalityLabels[row.key]}`
+                  : row.key,
+              )}
             </div>
           </div>
         </div>
+      </section>
 
-        <div class="card panel span-6">
-          <h2>废物等级分布</h2>
-          ${renderBarList(data.wasteLevels, (row) => `${row.key} / 5`)}
+      <section class="section">
+        <div class="section-head">
+          <h2 class="section-title">设备 · 地域 · 来源</h2>
+          <span class="section-meta">Audience</span>
         </div>
+        <div class="grid grid-12">
+          <div class="card col-6">
+            <div class="card-header">
+              <h3 class="card-title">设备 / 浏览器</h3>
+              <p class="card-sub">Device class &amp; browser</p>
+            </div>
+            <div class="card-body">
+              <div style="display:grid; gap:24px;">
+                <div>
+                  <div class="kpi-label" style="margin-bottom:10px;">Devices</div>
+                  ${renderBarList(data.devices, (row) => row.key)}
+                </div>
+                <div>
+                  <div class="kpi-label" style="margin-bottom:10px;">Browsers</div>
+                  ${renderInlineTable(data.browsers)}
+                </div>
+              </div>
+            </div>
+          </div>
 
-        <div class="card panel span-6">
-          <h2>四维平均分</h2>
-          <div class="score-grid">
-            ${renderScoreBox('GD', data.scoreAverages.GD)}
-            ${renderScoreBox('ZR', data.scoreAverages.ZR)}
-            ${renderScoreBox('NL', data.scoreAverages.NL)}
-            ${renderScoreBox('YF', data.scoreAverages.YF)}
+          <div class="card col-6">
+            <div class="card-header">
+              <h3 class="card-title">地域 &amp; 引荐</h3>
+              <p class="card-sub">Country, referrer, UTM</p>
+            </div>
+            <div class="card-body">
+              <div style="display:grid; gap:24px;">
+                <div>
+                  <div class="kpi-label" style="margin-bottom:10px;">Country</div>
+                  ${renderBarList(data.countries, (row) => row.key)}
+                </div>
+                <div>
+                  <div class="kpi-label" style="margin-bottom:10px;">Referrer</div>
+                  ${renderBarList(data.referrers, (row) => row.key)}
+                </div>
+                <div>
+                  <div class="kpi-label" style="margin-bottom:10px;">UTM Source</div>
+                  ${renderBarList(data.utmSources, (row) => row.key)}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+      </section>
 
-        <div class="card panel span-12">
-          <h2>题目选项分布</h2>
-          <div class="answer-grid">
-            ${renderAnswerQuestions(data.answerQuestions)}
+      <section class="section">
+        <div class="section-head">
+          <h2 class="section-title">维度信号</h2>
+          <span class="section-meta">Dimensional signals</span>
+        </div>
+        <div class="grid grid-12">
+          <div class="card col-6">
+            <div class="card-header">
+              <h3 class="card-title">废物等级分布</h3>
+              <p class="card-sub">Waste level (1–5)</p>
+            </div>
+            <div class="card-body">
+              ${renderBarList(data.wasteLevels, (row) => `Lv ${row.key} / 5`)}
+            </div>
+          </div>
+
+          <div class="card col-6">
+            <div class="card-header">
+              <h3 class="card-title">四维平均分</h3>
+              <p class="card-sub">Mean ratio per dimension · ${escapeHtml(scoreSubLabels)}</p>
+            </div>
+            <div class="card-body">
+              <div class="score-grid">
+                ${scoreBoxes}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <h2 class="section-title">题目选项分布</h2>
+          <span class="section-meta">Per-question option breakdown</span>
+        </div>
+        <div class="card">
+          <div class="answer-stack">
+            ${renderAnswerQuestions(data.answerQuestions, v)}
           </div>
         </div>
       </section>
     </main>
+
+    <footer class="footer">
+      <span>FWTI Telemetry · ${escapeHtml(formatDateTime(data.generatedAt))}</span>
+      <span class="mono">window=${data.days}d</span>
+    </footer>
   </body>
 </html>`;
 }
 
 function renderDayChip(days: number, activeDays: number): string {
-  return `<a class="chip ${days === activeDays ? 'is-active' : ''}" href="/dashboard?days=${days}">最近 ${days} 天</a>`;
+  const active = days === activeDays;
+  return `<a class="chip${active ? ' is-active' : ''}" href="/dashboard?days=${days}" aria-pressed="${active}">${days}d</a>`;
 }
 
 function renderKpi(label: string, value: string, note: string): string {
-  return `<div class="kpi">
+  return `<div class="kpi-cell">
     <div class="kpi-label">${escapeHtml(label)}</div>
     <div class="kpi-value">${escapeHtml(value)}</div>
     <div class="kpi-note">${escapeHtml(note)}</div>
@@ -1188,7 +1708,7 @@ function renderBarList(
       .map((row) => {
         const pct = Math.max((row.value / max) * 100, 2);
         return `<div class="bar-row">
-          <div class="bar-label">${escapeHtml(label(row))}</div>
+          <div class="bar-label" title="${escapeHtml(label(row))}">${escapeHtml(label(row))}</div>
           <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
           <div class="bar-value">${formatInteger(row.value)}</div>
         </div>`;
@@ -1197,18 +1717,18 @@ function renderBarList(
   </div>`;
 }
 
-function renderInlineList(rows: KVRow[]): string {
+function renderInlineTable(rows: KVRow[]): string {
   if (rows.length === 0) {
     return '<p class="empty">暂无数据</p>';
   }
-  return `<table>
+  return `<table class="table">
     <tbody>
       ${rows
         .slice(0, 6)
         .map(
           (row) => `<tr>
             <td>${escapeHtml(row.key)}</td>
-            <td style="text-align:right;">${formatInteger(row.value)}</td>
+            <td class="tnum">${formatInteger(row.value)}</td>
           </tr>`,
         )
         .join('')}
@@ -1217,43 +1737,53 @@ function renderInlineList(rows: KVRow[]): string {
 }
 
 function renderScoreBox(label: string, value: number): string {
-  return `<div class="score-box">
-    <div class="tiny">${escapeHtml(label)}</div>
-    <strong>${escapeHtml(value.toFixed(2))}</strong>
+  const sign = value > 0 ? '+' : '';
+  return `<div class="score-cell">
+    <div class="name">${escapeHtml(label)}</div>
+    <div class="value mono">${sign}${escapeHtml(value.toFixed(2))}</div>
+    <div class="delta">range −1.00 ~ +1.00</div>
   </div>`;
 }
 
-function renderAnswerQuestions(data: DashboardData['answerQuestions']): string {
+function renderAnswerQuestions(
+  data: DashboardData['answerQuestions'],
+  v: DashboardVersion,
+): string {
   if (data.length === 0) {
     return '<p class="empty">暂无答题分布数据</p>';
   }
   return data
     .map((question) => {
-      const tag = question.tag ? `<span class="badge">${escapeHtml(question.tag)}</span>` : '';
+      const tag = question.tag
+        ? `<span class="badge">${escapeHtml(question.tag)}</span>`
+        : '';
+      const dimLabel = v.dimensionLabels[question.dimension];
       return `<article class="answer-card">
         <div class="answer-head">
           <div>
-            <div class="answer-title">Q${question.questionId} · ${escapeHtml(question.text)}${tag}</div>
-            <div class="answer-meta">维度 ${escapeHtml(question.dimension)} · 样本 ${formatInteger(question.total)}</div>
+            <span class="answer-id mono">Q${question.questionId}</span>
+            <span class="answer-title">${escapeHtml(question.text)}</span>
+            ${tag}
           </div>
+          <div class="answer-meta mono">DIM ${escapeHtml(question.dimension)}${dimLabel ? ' ' + escapeHtml(dimLabel) : ''} · N ${formatInteger(question.total)}</div>
         </div>
-        <table>
+        <table class="table">
           <thead>
             <tr>
-              <th>选项</th>
-              <th>文案</th>
-              <th>次数</th>
-              <th>占比</th>
+              <th style="width:60px;">Option</th>
+              <th>Text</th>
+              <th class="tnum" style="width:80px;">Count</th>
+              <th class="tnum" style="width:80px;">Share</th>
             </tr>
           </thead>
           <tbody>
             ${question.options
               .map(
                 (option) => `<tr>
-                  <td>${escapeHtml(option.label)}</td>
+                  <td class="mono">${escapeHtml(option.label)}</td>
                   <td>${escapeHtml(option.text)}</td>
-                  <td>${formatInteger(option.value)}</td>
-                  <td>${formatPercent(option.pct)}</td>
+                  <td class="tnum">${formatInteger(option.value)}</td>
+                  <td class="tnum">${formatPercent(option.pct)}</td>
                 </tr>`,
               )
               .join('')}
@@ -1340,11 +1870,12 @@ function toInt(value: unknown, min: number, max: number): number | null {
 function toScore(value: unknown): IncomingEvent['score'] | undefined {
   if (!isPlainObject(value)) return undefined;
   const source = value as Record<string, unknown>;
+  // 兼容旧 client：GD/ZR/NL/YF 是 ScoresV3 中 C/R/A/S 的 alias，数值同。
   return {
-    GD: toFiniteNumber(source.GD) ?? undefined,
-    ZR: toFiniteNumber(source.ZR) ?? undefined,
-    NL: toFiniteNumber(source.NL) ?? undefined,
-    YF: toFiniteNumber(source.YF) ?? undefined,
+    C: toFiniteNumber(source.C ?? source.GD) ?? undefined,
+    R: toFiniteNumber(source.R ?? source.ZR) ?? undefined,
+    A: toFiniteNumber(source.A ?? source.NL) ?? undefined,
+    S: toFiniteNumber(source.S ?? source.YF) ?? undefined,
   };
 }
 
