@@ -60,7 +60,7 @@ export interface Question {
   tag?: '前置' | '彩蛋' | '补充题';
   text: string;
   options: Option[];
-  /** 基于 META 的题干 / 选项替换。主干题 v0.4 默认不带 variants（已 去语境化）。 */
+  /** 基于 META 的题干 / 选项替换。 */
   variants?: Partial<Record<StatusKey, QuestionVariant>>;
 }
 
@@ -128,6 +128,12 @@ const trunkGD: Question[] = [
       { label: 'B', text: '谁有想法谁来，都行', score: 0 },
       { label: 'C', text: 'TA 定吧，我"随便"和"都行"二选一', score: -2 },
     ],
+    variants: {
+      solo: {
+        text: '如果要约一个有好感的人见面，地点谁来定？',
+        options: [null, null, '对方定吧，我"随便"和"都行"二选一'],
+      },
+    },
   },
   {
     id: 5,
@@ -141,6 +147,18 @@ const trunkGD: Question[] = [
       { label: 'D', text: '不补发，但脑子里给 TA 写了十七条草稿', score: -1 },
       { label: 'E', text: '算了，TA 回不回都无所谓（其实有所谓）', score: -2 },
     ],
+    variants: {
+      solo: {
+        text: '一段可能发展的互动里，对方 2 小时没回消息，你的操作是？',
+        options: [
+          null,
+          null,
+          null,
+          '不补发，但脑子里给对方写了十七条草稿',
+          '算了，对方回不回都无所谓（其实有所谓）',
+        ],
+      },
+    },
   },
   {
     id: 6,
@@ -163,6 +181,12 @@ const trunkGD: Question[] = [
       { label: 'B', text: '看对方反应，TA 发我就回', score: 0 },
       { label: 'C', text: '不会，万一显得我太上头呢', score: -2 },
     ],
+    variants: {
+      solo: {
+        text: '一次见面 / 约会结束后，你会主动发消息说"今天很开心"吗？',
+        options: [null, '看对方反应，对方发我就回', null],
+      },
+    },
   },
 ];
 
@@ -183,6 +207,11 @@ const trunkZR: Question[] = [
       { label: 'E', text: '面无表情说"哦，挺好"，内心震天响但一个字也漏不出去', score: -2 },
       { label: 'F', text: '我基本起不了波澜，这种事对我触动不大', score: 0 },
     ],
+    variants: {
+      solo: {
+        text: '有人做了件让你特别上头的事（记住你随口提过的喜好 / 走心小礼 / 突然一句很戳你的话），你的第一反应是？',
+      },
+    },
   },
   {
     // v0.4 · F 选项为分支：触发 follow-up Q79 细分"真佛 / 压抑 / 不投入"。
@@ -198,6 +227,19 @@ const trunkZR: Question[] = [
       { label: 'E', text: '嘴上拉闸，眼神游离，任 TA 自演整场独角戏', score: -2 },
       { label: 'F', text: '我不吵架，心平气和，TA 发火我当新闻听', score: 0 },
     ],
+    variants: {
+      solo: {
+        text: '亲密关系或暧昧里，因为小事起冲突时，你的风格是？',
+        options: [
+          null,
+          '声音不大句句扎心，金句输出让对方自我怀疑到天亮',
+          null,
+          null,
+          '嘴上拉闸，眼神游离，任对方自演整场独角戏',
+          '我不吵架，心平气和，对方发火我当新闻听',
+        ],
+      },
+    },
   },
   {
     id: 12,
@@ -209,6 +251,11 @@ const trunkZR: Question[] = [
       { label: 'B', text: '找朋友倾诉一下就好了', score: 0 },
       { label: 'C', text: '自己消化，谁也不告诉，假装没事', score: -2 },
     ],
+    variants: {
+      solo: {
+        text: '在亲密关系 / 暧昧关系里受了委屈，你通常会？',
+      },
+    },
   },
   {
     id: 13,
@@ -220,6 +267,12 @@ const trunkZR: Question[] = [
       { label: 'B', text: '偶尔会，看情况', score: 0 },
       { label: 'C', text: '很久了 / 从来没有，在 TA 面前哭会显得我很弱', score: -2 },
     ],
+    variants: {
+      solo: {
+        text: '面对亲近的人，你有多久没当场哭过了？',
+        options: [null, null, '很久了 / 从来没有，在别人面前哭会显得我很弱'],
+      },
+    },
   },
   {
     id: 15,
@@ -231,6 +284,12 @@ const trunkZR: Question[] = [
       { label: 'B', text: '当时忍住，回家关起门来算账', score: 0 },
       { label: 'C', text: '吞了，可能 TA 是无心的吧（但我记住了）', score: -2 },
     ],
+    variants: {
+      solo: {
+        text: '亲近的人当着朋友的面说了让你没面子的话，你会？',
+        options: [null, null, '吞了，可能对方是无心的吧（但我记住了）'],
+      },
+    },
   },
 ];
 
@@ -259,6 +318,11 @@ const trunkNL: Question[] = [
       { label: 'B', text: '一起待半天，各自安排半天', score: 0 },
       { label: 'C', text: '给我一整个下午独处，否则我会枯萎', score: -2 },
     ],
+    variants: {
+      solo: {
+        options: ['和喜欢的人从早腻到晚，做什么都行，只要在一起', null, null],
+      },
+    },
   },
   {
     id: 20,
@@ -272,6 +336,12 @@ const trunkNL: Question[] = [
       { label: 'D', text: '隔两三天联系一次，够了', score: -1 },
       { label: 'E', text: '终于可以一个人看剧打游戏吃泡面了', score: -2 },
     ],
+    variants: {
+      solo: {
+        text: '如果一段关系里需要分开一个礼拜，你会？',
+        options: ['天天视频，度日如年，数着秒等对方回来', null, null, null, null],
+      },
+    },
   },
   {
     id: 21,
@@ -311,6 +381,11 @@ const trunkYF: Question[] = [
       { label: 'B', text: '嗯，别太晚回来就好', score: 0 },
       { label: 'C', text: '哦，知道了。（真的只是"知道了"，没有内心戏）', score: -2 },
     ],
+    variants: {
+      solo: {
+        text: '如果亲密关系里，对方和异性朋友单独吃饭，你的内心 OS 是？',
+      },
+    },
   },
   {
     id: 26,
@@ -324,6 +399,11 @@ const trunkYF: Question[] = [
       { label: 'D', text: '想过但立刻制止自己', score: -1 },
       { label: 'E', text: '从来没有，也没兴趣', score: -2 },
     ],
+    variants: {
+      solo: {
+        text: '你有没有因为在意一个人，查过聊天记录 / 社交动态？',
+      },
+    },
   },
   {
     id: 27,
@@ -335,6 +415,16 @@ const trunkYF: Question[] = [
       { label: 'B', text: '注意到了，有点酸，但不至于太在意', score: 0 },
       { label: 'C', text: '点赞而已，你不也点吗', score: -2 },
     ],
+    variants: {
+      solo: {
+        text: '在意的人点赞了一个异性的自拍，你会？',
+        options: [
+          '立刻去看那个人是谁，翻完对方最近三年的动态',
+          null,
+          '点赞而已，谁都会点',
+        ],
+      },
+    },
   },
   {
     id: 29,
@@ -348,6 +438,12 @@ const trunkYF: Question[] = [
       { label: 'D', text: '年度一次，心情差时', score: -1 },
       { label: 'E', text: '没有，想这些太累了', score: -2 },
     ],
+    variants: {
+      solo: {
+        text: '你有没有脑补过"自己其实不被爱 / 不被选择"的场景？',
+        options: [null, '每次对方回消息稍慢就浮现一次', null, null, null],
+      },
+    },
   },
   {
     id: 30,
@@ -359,6 +455,12 @@ const trunkYF: Question[] = [
       { label: 'B', text: '酸一下，然后自我调节', score: 0 },
       { label: 'C', text: '确实好看，我也觉得', score: -2 },
     ],
+    variants: {
+      solo: {
+        text: '在意的人夸别人好看，你的反应是？',
+        options: ['行，那你去找别人啊！（已经在脑中上演被抛弃的完整剧情）', null, null],
+      },
+    },
   },
 ];
 
@@ -375,6 +477,11 @@ const trunkEgg: Question[] = [
       { label: 'B', text: '偶尔吧……', score: 0, hidden: 1 },
       { label: 'C', text: '没有，发了就发了', score: 0, hidden: 0 },
     ],
+    variants: {
+      solo: {
+        text: '你有没有做过这种事：给在意的人发了一条消息 → 立刻撤回 → 重新编辑 → 再发出去 → 再撤回 → 最后决定不发了？',
+      },
+    },
   },
 ];
 
@@ -786,11 +893,11 @@ const soloExt: Question[] = [
     id: 66,
     dimension: 'YF',
     scale: 3,
-    text: '刷到前任 / 旧暗恋对象的动态，你会——',
+    text: '刷到一个曾经 / 可能会让你心动的人动态，你会——',
     options: [
-      { label: 'A', text: '立刻翻完 TA 最近三个月', score: 2 },
+      { label: 'A', text: '立刻翻完对方最近三个月', score: 2 },
       { label: 'B', text: '看两眼，滑走', score: 0 },
-      { label: 'C', text: '屏蔽了 / 不认识这人', score: -2 },
+      { label: 'C', text: '不认识 / 不关心 / 直接滑走', score: -2 },
     ],
   },
   {
@@ -799,7 +906,7 @@ const soloExt: Question[] = [
     scale: 5,
     text: '如果明天突然有人很认真地对你表白，你的第一反应是？',
     options: [
-      { label: 'A', text: 'TA 是不是有什么目的？先查一查', score: 2 },
+      { label: 'A', text: '对方是不是有什么目的？先查一查', score: 2 },
       { label: 'B', text: '感动但脑子立刻盘算各种可能性', score: 1 },
       { label: 'C', text: '先了解一下再说', score: 0 },
       { label: 'D', text: '大概会答应看看吧', score: -1 },
@@ -817,7 +924,7 @@ const soloExt: Question[] = [
       { label: 'B', text: '挺舒服的，偶尔会这样做', score: 1 },
       { label: 'C', text: '还好，不特别', score: 0 },
       { label: 'D', text: '会焦虑，怕错过什么', score: -1 },
-      { label: 'E', text: '必须立刻回，上线晚了 TA 会生气', score: -2 },
+      { label: 'E', text: '必须立刻回，上线晚了别人会不高兴', score: -2 },
     ],
   },
 ];
@@ -846,6 +953,12 @@ const followupQuestions: Question[] = [
       { label: 'B', text: '转去找共同好友问问', score: 0 },
       { label: 'C', text: '装没事，但已经在想是不是 TA 把我删了', score: -2 },
     ],
+    variants: {
+      solo: {
+        text: '那如果补了之后对方 3 小时还是没回，你会？',
+        options: [null, null, '装没事，但已经在想是不是对方把我删了'],
+      },
+    },
   },
   {
     id: 69,
@@ -870,6 +983,12 @@ const followupQuestions: Question[] = [
       { label: 'B', text: '等 TA 主动再发', score: 0 },
       { label: 'C', text: '心里凉半截，开始自我 PUA', score: 1 },
     ],
+    variants: {
+      solo: {
+        text: '如果你在意的人某天只给你发了三条消息，你会？',
+        options: ['连发一串问对方在干嘛', '等对方主动再发', null],
+      },
+    },
   },
   {
     id: 71,
@@ -882,6 +1001,11 @@ const followupQuestions: Question[] = [
       { label: 'B', text: '会，但换成阴阳怪气那种问法', score: 1 },
       { label: 'C', text: '不会，憋着自己消化（然后更崩）', score: -2 },
     ],
+    variants: {
+      solo: {
+        text: '你会据此直接去问对方吗？',
+      },
+    },
   },
   {
     id: 72,
@@ -950,9 +1074,9 @@ const followupQuestions: Question[] = [
     tag: '补充题',
     text: '查完之后你最可能的下一步是——',
     options: [
-      { label: 'A', text: '查无疑虑后主动约 TA 出来', score: 2 },
+      { label: 'A', text: '查无疑虑后主动约对方出来', score: 2 },
       { label: 'B', text: '礼貌婉拒，不想开始任何关系', score: 0 },
-      { label: 'C', text: '查着查着就不想回 TA 消息了', score: -2 },
+      { label: 'C', text: '查着查着就不想回对方消息了', score: -2 },
     ],
   },
   {
@@ -974,6 +1098,11 @@ const followupQuestions: Question[] = [
         secondary: { dimension: 'NL', score: -2 },
       },
     ],
+    variants: {
+      solo: {
+        options: [null, null, '对这段互动投入不深，对方做什么都触不到我'],
+      },
+    },
   },
   {
     // v0.4 · Q10(吵架风格) F 分支 follow-up · 同构：真佛 / 压抑 / 不投入
@@ -992,6 +1121,11 @@ const followupQuestions: Question[] = [
         secondary: { dimension: 'NL', score: -2 },
       },
     ],
+    variants: {
+      solo: {
+        options: ['真佛系，对感情里的争执没胜负心，对方发完也就过了', null, null],
+      },
+    },
   },
 ];
 
@@ -1055,7 +1189,7 @@ export const followups: Record<number, Record<number, Question[]>> = {
     3: [followupById[76]],
     4: [followupById[76]],
   },
-  // Q67（solo 被告白先查 TA）选 A → Q77
+  // Q67（solo 被告白先查对方）选 A → Q77
   67: {
     0: [followupById[77]],
   },
