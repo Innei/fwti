@@ -576,7 +576,7 @@ a.nav-logo:focus-visible {
 }
 .preview-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
 }
 .preview-tile {
@@ -2823,7 +2823,7 @@ button.legend-chip:focus-visible {
     text-align: center;
   }
   .preview-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
   }
   .preview-tile {
@@ -2979,7 +2979,7 @@ button.legend-chip:focus-visible {
     font-size: 19px;
   }
   .preview-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }
   .preview-tile {
